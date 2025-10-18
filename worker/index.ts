@@ -141,8 +141,47 @@ app.onError((err, c) => {
   );
 });
 
-// Export Worker
-export default app;
+// Queue Consumer Handler
+async function queueHandler(batch: any, env: Env): Promise<void> {
+  console.log(`Processing batch of ${batch.messages.length} messages`);
 
-// Durable Object export (if needed)
+  for (const message of batch.messages) {
+    try {
+      const payload = message.body;
+
+      // Get all active push subscriptions
+      const subscriptions = await env.DB.prepare(
+        'SELECT * FROM push_subscriptions'
+      ).all();
+
+      console.log(`Found ${subscriptions.results.length} push subscriptions`);
+
+      // Send push notification to each subscription
+      for (const sub of subscriptions.results) {
+        try {
+          console.log('Would send push notification:', {
+            endpoint: sub.endpoint,
+            payload,
+          });
+        } catch (error) {
+          console.error(`Failed to send push to ${sub.endpoint}:`, error);
+        }
+      }
+
+      // Acknowledge message
+      message.ack();
+    } catch (error) {
+      console.error('Failed to process message:', error);
+      message.retry();
+    }
+  }
+}
+
+// Export Worker with queue handler
+export default {
+  fetch: app.fetch,
+  queue: queueHandler,
+};
+
+// Durable Object export
 export { RateLimiter } from './durable';

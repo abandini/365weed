@@ -7,16 +7,16 @@ workers_dev = true
 [[d1_databases]]
 binding = "DB"
 database_name = "365db"
-database_id = "placeholder-will-be-replaced"
+database_id = "5b370079-84d7-478a-a987-31288a85628a"
 
 # KV Namespaces
 [[kv_namespaces]]
 binding = "CACHE"
-id = "placeholder-will-be-replaced"
+id = "c3c81eea93184bf7bb58db1ff8e5b4a3"
 
 [[kv_namespaces]]
 binding = "ADS"
-id = "placeholder-will-be-replaced"
+id = "d80749f208c94442a53e5de9ad7e4f85"
 
 # R2 Buckets
 [[r2_buckets]]
