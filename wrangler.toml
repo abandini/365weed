@@ -1,0 +1,69 @@
+name = "weed365"
+main = "worker/index.ts"
+compatibility_date = "2025-10-01"
+workers_dev = true
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "365db"
+database_id = "placeholder-will-be-replaced"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "CACHE"
+id = "placeholder-will-be-replaced"
+
+[[kv_namespaces]]
+binding = "ADS"
+id = "placeholder-will-be-replaced"
+
+# R2 Buckets
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "weed-assets"
+
+[[r2_buckets]]
+binding = "PARTNER_ASSETS"
+bucket_name = "weed-partner-assets"
+
+# Queues
+[[queues.producers]]
+binding = "DAILY_QUEUE"
+queue = "daily-broadcast"
+
+[[queues.consumers]]
+queue = "daily-broadcast"
+max_batch_size = 50
+max_retries = 3
+dead_letter_queue = "daily-broadcast-dlq"
+
+# AI Binding
+[ai]
+binding = "AI"
+
+# Environment Variables
+[vars]
+APP_BASE_URL = "https://365daysofweed.com"
+PUSH_SENDER = "mailto:admin@365daysofweed.com"
+ENVIRONMENT = "development"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+script_name = "weed365"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiter"]
+
+# Development overrides
+[env.development]
+name = "weed365-dev"
+vars = { APP_BASE_URL = "http://localhost:8787", ENVIRONMENT = "development" }
+
+# Production configuration
+[env.production]
+name = "weed365"
+vars = { APP_BASE_URL = "https://365daysofweed.com", ENVIRONMENT = "production" }
