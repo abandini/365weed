@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Today from './routes/Today';
 import Calendar from './routes/Calendar';
 import Journal from './routes/Journal';
+import PartnerDashboard from './routes/PartnerDashboard';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/" element={<Today />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/journal" element={<Journal />} />
+            <Route path="/partner" element={<PartnerDashboard />} />
           </Routes>
         </main>
 
