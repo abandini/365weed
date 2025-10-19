@@ -25,8 +25,9 @@ const journalEntrySchema = z.object({
 router.post('/', async (c) => {
   try {
     const body = await c.req.json();
-    const entry = journalEntrySchema.parse(body);
+    console.log('Journal POST body:', body);
 
+    const entry = journalEntrySchema.parse(body);
     const date = entry.date ?? db.getCurrentDate();
 
     const id = await db.insert(
@@ -48,10 +49,14 @@ router.post('/', async (c) => {
 
     return c.json({ ok: true, id });
   } catch (error) {
+    console.error('Journal creation error:', error);
     if (error instanceof z.ZodError) {
       return c.json({ error: 'Invalid request body', details: error.errors }, 400);
     }
-    return c.json({ error: 'Failed to create journal entry' }, 500);
+    return c.json({
+      error: 'Failed to create journal entry',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, 500);
   }
 });
 

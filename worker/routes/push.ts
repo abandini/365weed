@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import * as db from '../lib/db';
+import { sendWebPush, getVapidPublicKey } from '../lib/webpush';
 
 const router = new Hono<{ Bindings: Env }>();
 
@@ -71,7 +72,7 @@ router.delete('/unsubscribe', async (c) => {
  * Get VAPID public key
  */
 router.get('/vapid', async (c) => {
-  return c.json({ publicKey: c.env.VAPID_PUBLIC_KEY });
+  return c.json({ publicKey: getVapidPublicKey(c.env) });
 });
 
 /**
@@ -107,21 +108,5 @@ router.post('/test', async (c) => {
   }
 });
 
-/**
- * Send web push notification
- * Simplified implementation - for production, use a library like web-push
- */
-async function sendWebPush(env: Env, subscription: any, payload: any): Promise<void> {
-  // This is a simplified implementation
-  // In production, you would use the Web Push protocol with VAPID
-  // For now, we'll just log it
-  console.log('Sending push notification:', {
-    endpoint: subscription.endpoint,
-    payload,
-  });
-
-  // TODO: Implement full Web Push protocol with VAPID
-  // See: https://developers.cloudflare.com/workers/examples/web-push/
-}
 
 export default router;

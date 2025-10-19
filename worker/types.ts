@@ -153,6 +153,16 @@ export interface Redemption {
   redeemed_at: string;
 }
 
+export interface CampaignEvent {
+  id: number;
+  campaign_id: number;
+  creative_id: number | null;
+  coupon_id: number | null;
+  event_type: string;
+  occurred_at: string;
+  metadata_json: string | null;
+}
+
 export interface PushSubscription {
   id: number;
   user_id: number;

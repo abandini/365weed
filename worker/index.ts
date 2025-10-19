@@ -80,9 +80,9 @@ app.get('/c/:code', async (c) => {
     return c.text('Coupon not found', 404);
   }
 
-  // Get campaign to find target URL
+  // Get campaign to confirm ownership
   const campaign = await c.env.DB.prepare(
-    'SELECT * FROM campaigns WHERE id = ?'
+    'SELECT id FROM campaigns WHERE id = ?'
   )
     .bind(coupon.campaign_id)
     .first();
@@ -91,16 +91,35 @@ app.get('/c/:code', async (c) => {
     return c.text('Campaign not found', 404);
   }
 
-  // Log the click
-  await c.env.DB.prepare(
-    'INSERT INTO ad_impressions(ad_id, date, event_type) VALUES (?, ?, ?)'
+  // Prefer a creative-specific target
+  const creative = await c.env.DB.prepare(
+    `SELECT id, target_url
+     FROM creatives
+     WHERE campaign_id = ?
+     ORDER BY weight DESC, id ASC
+     LIMIT 1`
   )
-    .bind(coupon.campaign_id, new Date().toISOString().slice(0, 10), 'click')
+    .bind(coupon.campaign_id)
+    .first();
+
+  // Log the click against the campaign (and creative when available)
+  await c.env.DB.prepare(
+    `INSERT INTO campaign_events (campaign_id, creative_id, coupon_id, event_type, metadata_json)
+     VALUES (?, ?, ?, ?, ?)`
+  )
+    .bind(
+      coupon.campaign_id,
+      creative?.id ?? null,
+      coupon.id,
+      'coupon-click',
+      JSON.stringify({ coupon_code: code })
+    )
     .run();
 
-  // Redirect to partner site with coupon code
-  // In production, get target_url from campaign/creative
-  const targetUrl = `https://partner.example.com?coupon=${code}`;
+  // Redirect to partner site derived from campaign creative when possible
+  const targetUrl =
+    creative?.target_url ?? `https://partner.example.com?coupon=${code}`;
+
   return c.redirect(targetUrl);
 });
 

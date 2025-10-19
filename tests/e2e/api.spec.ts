@@ -32,7 +32,7 @@ test.describe('API Endpoints', () => {
 
   test('journal creation works', async ({ request }) => {
     const entry = {
-      user_id: 999,
+      user_id: 1, // Use existing user from seed data
       date: '2025-10-18',
       method: 'edible',
       amount: 5,
