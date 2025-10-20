@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8787/api';
+// Point to deployed Worker API
+const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev/api';
 
 export interface DayCard {
   id: number;
