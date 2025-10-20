@@ -90,6 +90,73 @@ export default function Today() {
               ))}
             </div>
           )}
+
+          {/* Action Button */}
+          {card.actionButton && (
+            <div className="mt-6">
+              <a
+                href={card.actionButton.links.primary}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition shadow-lg hover:shadow-xl"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                {card.actionButton.text}
+              </a>
+
+              {/* Additional links */}
+              <div className="mt-3 flex gap-3 text-sm">
+                {card.actionButton.links.weedmaps && (
+                  <a
+                    href={card.actionButton.links.weedmaps}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-primary transition"
+                  >
+                    Weedmaps
+                  </a>
+                )}
+                {card.actionButton.links.leafly && (
+                  <a
+                    href={card.actionButton.links.leafly}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-primary transition"
+                  >
+                    Leafly
+                  </a>
+                )}
+                {card.actionButton.links.google && (
+                  <a
+                    href={card.actionButton.links.google}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-primary transition"
+                  >
+                    Google Maps
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </section>
       )}
 

@@ -11,6 +11,19 @@ export interface DayCard {
   tags: string;
   hero_url: string;
   published_at: string;
+  location?: {
+    city?: string;
+    state?: string;
+  };
+  actionButton?: {
+    text: string;
+    links: {
+      weedmaps?: string;
+      leafly?: string;
+      google?: string;
+      primary: string;
+    };
+  };
 }
 
 export interface Ad {
