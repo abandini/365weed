@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env } from '../types';
 import * as db from '../lib/db';
 import * as kv from '../lib/kv';
+import { getUserLocation, generateActionButton } from '../lib/location';
 
 const router = new Hono<{ Bindings: Env }>();
 
@@ -41,10 +42,24 @@ router.get('/', async (c) => {
     });
   }
 
-  // Cache for 1 hour
-  await kv.setJson(c.env.CACHE, cacheKey, card, 3600);
+  // Get user location from Cloudflare headers
+  const location = getUserLocation(c.req.raw);
 
-  return c.json(card);
+  // Extract app integration text (usually last paragraph) and generate action button
+  const paragraphs = card.body_md.split('\n\n');
+  const appIntegrationText = paragraphs[paragraphs.length - 1];
+  const actionButton = generateActionButton(appIntegrationText, location);
+
+  const response = {
+    ...card,
+    location: location.region ? { city: location.city, state: location.region } : undefined,
+    actionButton,
+  };
+
+  // Cache for 1 hour
+  await kv.setJson(c.env.CACHE, cacheKey, response, 3600);
+
+  return c.json(response);
 });
 
 /**
