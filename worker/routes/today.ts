@@ -54,7 +54,7 @@ router.get('/', async (c) => {
 router.get('/calendar', async (c) => {
   const cards = await db.all(
     c.env.DB,
-    'SELECT date, title, slug FROM day_cards ORDER BY date DESC LIMIT 365'
+    'SELECT date, title, slug FROM day_cards ORDER BY date DESC'
   );
 
   return c.json({ cards });
