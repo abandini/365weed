@@ -7,20 +7,42 @@ import PartnerDashboard from './routes/PartnerDashboard';
 function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-900 text-white">
-        <nav className="bg-gray-800 border-b border-gray-700">
-          <div className="max-w-4xl mx-auto px-4 py-3">
+      <div className="min-h-screen bg-gray-900 text-white bg-cannabis-pattern">
+        <nav className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 shadow-lg">
+          <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-primary">365 Days of Weed</h1>
-              <div className="flex gap-4">
-                <Link to="/" className="hover:text-primary transition">
-                  Today
+              <Link to="/" className="group flex items-center gap-2 hover:opacity-80 transition">
+                <svg className="w-8 h-8 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C11.5 2 11 2.19 10.59 2.59C10.2 3 10 3.5 10 4V12C10 12.5 10.2 13 10.59 13.41C11 13.81 11.5 14 12 14C12.5 14 13 13.81 13.41 13.41C13.81 13 14 12.5 14 12V4C14 3.5 13.81 3 13.41 2.59C13 2.19 12.5 2 12 2M9 7C8.5 7 8 7.19 7.59 7.59C7.2 8 7 8.5 7 9V12C7 12.5 7.2 13 7.59 13.41C8 13.81 8.5 14 9 14C9.5 14 10 13.81 10.41 13.41C10.81 13 11 12.5 11 12V9C11 8.5 10.81 8 10.41 7.59C10 7.19 9.5 7 9 7M15 7C14.5 7 14 7.19 13.59 7.59C13.2 8 13 8.5 13 9V12C13 12.5 13.2 13 13.59 13.41C14 13.81 14.5 14 15 14C15.5 14 16 13.81 16.41 13.41C16.81 13 17 12.5 17 12V9C17 8.5 16.81 8 16.41 7.59C16 7.19 15.5 7 15 7M12 15C11.39 15 10.83 15.32 10.41 15.73L8.5 17.64C7.67 18.47 7 19.72 7 21V22H17V21C17 19.72 16.33 18.47 15.5 17.64L13.59 15.73C13.17 15.32 12.61 15 12 15Z"/>
+                </svg>
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-teal to-primary-light bg-clip-text text-transparent">
+                    365 Days of Weed
+                  </h1>
+                  <p className="text-xs text-gray-500">Daily Cannabis Education</p>
+                </div>
+              </Link>
+              <div className="flex gap-6">
+                <Link
+                  to="/"
+                  className="relative group px-3 py-2 hover:text-primary transition-colors font-medium"
+                >
+                  <span>Today</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300"></span>
                 </Link>
-                <Link to="/calendar" className="hover:text-primary transition">
-                  Calendar
+                <Link
+                  to="/calendar"
+                  className="relative group px-3 py-2 hover:text-teal transition-colors font-medium"
+                >
+                  <span>Calendar</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-teal group-hover:w-full transition-all duration-300"></span>
                 </Link>
-                <Link to="/journal" className="hover:text-primary transition">
-                  Journal
+                <Link
+                  to="/journal"
+                  className="relative group px-3 py-2 hover:text-gold transition-colors font-medium"
+                >
+                  <span>Journal</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold group-hover:w-full transition-all duration-300"></span>
                 </Link>
               </div>
             </div>
