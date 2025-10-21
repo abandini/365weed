@@ -9,6 +9,8 @@ import journalRouter from './routes/journal';
 import pushRouter from './routes/push';
 import partnersRouter from './routes/partners';
 import stripeRouter from './routes/stripe';
+import streaksRouter from './routes/streaks';
+import achievementsRouter from './routes/achievements';
 
 // Create Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -64,6 +66,8 @@ app.route('/api/journal', journalRouter);
 app.route('/api/push', pushRouter);
 app.route('/api/partners', partnersRouter);
 app.route('/api/stripe', stripeRouter);
+app.route('/api/streaks', streaksRouter);
+app.route('/api/achievements', achievementsRouter);
 
 // Coupon redirect
 app.get('/c/:code', async (c) => {
