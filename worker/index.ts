@@ -12,6 +12,9 @@ import stripeRouter from './routes/stripe';
 import streaksRouter from './routes/streaks';
 import achievementsRouter from './routes/achievements';
 import notificationsRouter from './routes/notifications';
+import referralsRouter from './routes/referrals';
+import recommendationsRouter from './routes/recommendations';
+import communityRouter from './routes/community';
 
 // Create Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -70,6 +73,9 @@ app.route('/api/stripe', stripeRouter);
 app.route('/api/streaks', streaksRouter);
 app.route('/api/achievements', achievementsRouter);
 app.route('/api/notifications', notificationsRouter);
+app.route('/api/referrals', referralsRouter);
+app.route('/api/recommendations', recommendationsRouter);
+app.route('/api/community', communityRouter);
 
 // Coupon redirect
 app.get('/c/:code', async (c) => {
