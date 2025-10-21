@@ -23,8 +23,9 @@ export function StreakBadge({ userId, onClick }: StreakBadgeProps) {
   }, [userId]);
 
   const fetchStreak = async () => {
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
     try {
-      const response = await fetch(`/api/streaks/${userId}`);
+      const response = await fetch(`${API_BASE}/api/streaks/${userId}`);
       const data = await response.json();
       setStreak(data.streak);
     } catch (error) {

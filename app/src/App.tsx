@@ -3,6 +3,9 @@ import Today from './routes/Today';
 import Calendar from './routes/Calendar';
 import Journal from './routes/Journal';
 import PartnerDashboard from './routes/PartnerDashboard';
+import Achievements from './routes/Achievements';
+import StreakBadge from './components/StreakBadge';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   return (
@@ -22,7 +25,7 @@ function App() {
                   <p className="text-xs text-gray-500">Daily Cannabis Education</p>
                 </div>
               </Link>
-              <div className="flex gap-6">
+              <div className="flex items-center gap-6">
                 <Link
                   to="/"
                   className="relative group px-3 py-2 hover:text-primary transition-colors font-medium"
@@ -44,6 +47,15 @@ function App() {
                   <span>Journal</span>
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold group-hover:w-full transition-all duration-300"></span>
                 </Link>
+                <Link
+                  to="/achievements"
+                  className="relative group px-3 py-2 hover:text-purple transition-colors font-medium"
+                >
+                  <span>Achievements</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple group-hover:w-full transition-all duration-300"></span>
+                </Link>
+                <StreakBadge userId={1} />
+                <ThemeToggle />
               </div>
             </div>
           </div>
@@ -54,6 +66,7 @@ function App() {
             <Route path="/" element={<Today />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/journal" element={<Journal />} />
+            <Route path="/achievements" element={<Achievements />} />
             <Route path="/partner" element={<PartnerDashboard />} />
           </Routes>
         </main>

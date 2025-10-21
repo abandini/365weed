@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getToday, getAds, trackAd, DayCard, Ad } from '../lib/api';
+import AchievementModal from '../components/AchievementModal';
 
 export default function Today() {
   const [searchParams] = useSearchParams();
@@ -8,11 +9,36 @@ export default function Today() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [newAchievement, setNewAchievement] = useState<any>(null);
   const dateParam = searchParams.get('date');
 
   useEffect(() => {
     loadContent();
+    checkInForStreak();
   }, [dateParam]);
+
+  async function checkInForStreak() {
+    const userId = 1; // TODO: Get from auth context
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
+
+    try {
+      const response = await fetch(`${API_BASE}/api/streaks/checkin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+
+      const result = await response.json();
+
+      // Check if any new achievements were unlocked
+      if (result.new_achievements && result.new_achievements.length > 0) {
+        // Show modal for first achievement
+        setNewAchievement(result.new_achievements[0]);
+      }
+    } catch (err) {
+      console.error('Check-in failed:', err);
+    }
+  }
 
   async function loadContent() {
     try {
@@ -296,6 +322,14 @@ export default function Today() {
             </a>
           ))}
         </section>
+      )}
+
+      {/* Achievement Unlock Modal */}
+      {newAchievement && (
+        <AchievementModal
+          achievement={newAchievement}
+          onClose={() => setNewAchievement(null)}
+        />
       )}
     </div>
   );
