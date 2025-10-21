@@ -1,23 +1,26 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getToday, getAds, trackAd, DayCard, Ad } from '../lib/api';
 
 export default function Today() {
+  const [searchParams] = useSearchParams();
   const [card, setCard] = useState<DayCard | null>(null);
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const dateParam = searchParams.get('date');
 
   useEffect(() => {
     loadContent();
-  }, []);
+  }, [dateParam]);
 
   async function loadContent() {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch today's card
-      const todayCard = await getToday();
+      // Fetch today's card (or specific date if provided)
+      const todayCard = await getToday(dateParam || undefined);
       setCard(todayCard);
 
       // Fetch ads (try to get user's state from localStorage)
