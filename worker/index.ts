@@ -11,6 +11,7 @@ import partnersRouter from './routes/partners';
 import stripeRouter from './routes/stripe';
 import streaksRouter from './routes/streaks';
 import achievementsRouter from './routes/achievements';
+import notificationsRouter from './routes/notifications';
 
 // Create Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -68,6 +69,7 @@ app.route('/api/partners', partnersRouter);
 app.route('/api/stripe', stripeRouter);
 app.route('/api/streaks', streaksRouter);
 app.route('/api/achievements', achievementsRouter);
+app.route('/api/notifications', notificationsRouter);
 
 // Coupon redirect
 app.get('/c/:code', async (c) => {
@@ -168,26 +170,89 @@ app.onError((err, c) => {
 async function queueHandler(batch: any, env: Env): Promise<void> {
   console.log(`Processing batch of ${batch.messages.length} messages`);
 
+  // Dynamically import webpush to avoid circular dependencies
+  const { sendWebPush } = await import('./lib/webpush');
+
   for (const message of batch.messages) {
     try {
       const payload = message.body;
+      const { notification_type, title, body, icon, url, user_id } = payload;
 
       // Get all active push subscriptions
-      const subscriptions = await env.DB.prepare(
-        'SELECT * FROM push_subscriptions'
-      ).all();
+      let query = 'SELECT * FROM push_subscriptions WHERE enabled = 1';
+      const params: any[] = [];
+
+      // If user_id specified, only send to that user
+      if (user_id) {
+        query += ' AND user_id = ?';
+        params.push(user_id);
+      }
+
+      const subscriptions = await env.DB.prepare(query)
+        .bind(...params)
+        .all();
 
       console.log(`Found ${subscriptions.results.length} push subscriptions`);
 
       // Send push notification to each subscription
       for (const sub of subscriptions.results) {
         try {
-          console.log('Would send push notification:', {
-            endpoint: sub.endpoint,
-            payload,
+          await sendWebPush(env, {
+            endpoint: sub.endpoint as string,
+            p256dh: sub.p256dh as string,
+            auth: sub.auth as string,
+          }, {
+            title: title || 'New notification',
+            body: body || '',
+            icon: icon || '/icon-192.png',
+            data: { url: url || '/', type: notification_type },
           });
+
+          // Log successful send
+          await env.DB.prepare(`
+            INSERT INTO notification_history
+            (user_id, subscription_endpoint, notification_type, title, body, icon_url, url, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'sent')
+          `).bind(
+            sub.user_id,
+            sub.endpoint,
+            notification_type || 'general',
+            title,
+            body,
+            icon || '/icon-192.png',
+            url || '/'
+          ).run();
+
+          // Update subscription last_sent
+          await env.DB.prepare(
+            'UPDATE push_subscriptions SET last_sent = CURRENT_TIMESTAMP WHERE endpoint = ?'
+          ).bind(sub.endpoint).run();
+
         } catch (error) {
           console.error(`Failed to send push to ${sub.endpoint}:`, error);
+
+          // Log failure
+          await env.DB.prepare(`
+            INSERT INTO notification_history
+            (user_id, subscription_endpoint, notification_type, title, body, status, error_message)
+            VALUES (?, ?, ?, ?, ?, 'failed', ?)
+          `).bind(
+            sub.user_id,
+            sub.endpoint,
+            notification_type || 'general',
+            title,
+            body,
+            error instanceof Error ? error.message : 'Unknown error'
+          ).run();
+
+          // Update failure count
+          await env.DB.prepare(`
+            UPDATE push_subscriptions
+            SET failure_count = failure_count + 1,
+                last_failure = CURRENT_TIMESTAMP,
+                enabled = CASE WHEN failure_count >= 5 THEN 0 ELSE enabled END
+            WHERE endpoint = ?
+          `).bind(sub.endpoint).run();
         }
       }
 
