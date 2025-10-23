@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getToday, getAds, trackAd, DayCard, Ad } from '../lib/api';
 import AchievementModal from '../components/AchievementModal';
+import CommunityStats from '../components/CommunityStats';
+import RecommendationsCarousel from '../components/RecommendationsCarousel';
 
 export default function Today() {
   const [searchParams] = useSearchParams();
@@ -260,6 +262,12 @@ export default function Today() {
           )}
         </section>
       )}
+
+      {/* Community Stats */}
+      <CommunityStats />
+
+      {/* Personalized Recommendations */}
+      <RecommendationsCarousel />
 
       {/* Sponsored Content */}
       {ads.length > 0 && (
