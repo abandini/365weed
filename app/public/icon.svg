@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#0b0f0e"/>
+
+  <!-- Cannabis leaf with gradient -->
+  <defs>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Cannabis leaf path (simplified iconic version) -->
+  <g transform="translate(256,256)">
+    <!-- Center leaf -->
+    <path d="M 0,-140 Q 8,-100 15,-60 Q 20,-20 10,0 L 0,80 L -10,0 Q -20,-20 -15,-60 Q -8,-100 0,-140 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+
+    <!-- Left leaves -->
+    <path d="M -10,0 Q -40,-10 -70,-25 Q -90,-35 -100,-50 Q -90,-40 -70,-30 Q -40,-15 -10,0 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+    <path d="M -10,-20 Q -50,-30 -85,-50 Q -105,-65 -115,-85 Q -105,-70 -85,-55 Q -50,-35 -10,-20 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+    <path d="M -5,-60 Q -35,-75 -60,-100 Q -75,-120 -80,-140 Q -75,-120 -60,-100 Q -35,-80 -5,-60 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+
+    <!-- Right leaves -->
+    <path d="M 10,0 Q 40,-10 70,-25 Q 90,-35 100,-50 Q 90,-40 70,-30 Q 40,-15 10,0 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+    <path d="M 10,-20 Q 50,-30 85,-50 Q 105,-65 115,-85 Q 105,-70 85,-55 Q 50,-35 10,-20 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+    <path d="M 5,-60 Q 35,-75 60,-100 Q 75,-120 80,-140 Q 75,-120 60,-100 Q 35,-80 5,-60 Z"
+          fill="url(#leafGradient)" stroke="#15803d" stroke-width="2"/>
+
+    <!-- Stem -->
+    <rect x="-3" y="0" width="6" height="80" fill="#15803d" rx="2"/>
+  </g>
+
+  <!-- "365" text at bottom -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="72" font-weight="bold"
+        fill="#22c55e" text-anchor="middle">365</text>
+</svg>
