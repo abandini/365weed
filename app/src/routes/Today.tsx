@@ -5,6 +5,8 @@ import AchievementModal from '../components/AchievementModal';
 import CommunityStats from '../components/CommunityStats';
 import RecommendationsCarousel from '../components/RecommendationsCarousel';
 import FourTwentyModal from '../components/FourTwentyModal';
+import DailyChallenge from '../components/DailyChallenge';
+import StrainNameGenerator from '../components/StrainNameGenerator';
 
 export default function Today() {
   const [searchParams] = useSearchParams();
@@ -14,6 +16,7 @@ export default function Today() {
   const [error, setError] = useState<string | null>(null);
   const [newAchievement, setNewAchievement] = useState<any>(null);
   const [show420Modal, setShow420Modal] = useState(false);
+  const [showStrainGenerator, setShowStrainGenerator] = useState(false);
   const dateParam = searchParams.get('date');
 
   useEffect(() => {
@@ -239,9 +242,21 @@ export default function Today() {
             <h3 className="text-lg font-bold text-purple-light mb-2">Your Daily Stoner Horoscope</h3>
             <p className="text-gray-300 leading-relaxed italic">{dailyHoroscope}</p>
             <p className="text-xs text-gray-500 mt-3">✨ The cosmos have spoken ✨</p>
+
+            {/* Strain Name Generator Easter Egg */}
+            <button
+              onClick={() => setShowStrainGenerator(true)}
+              className="mt-4 px-4 py-2 bg-gradient-to-r from-purple/30 to-teal/30 hover:from-purple/40 hover:to-teal/40 border border-purple/40 text-purple-light hover:text-white rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+            >
+              <span>🎲</span>
+              <span>Discover Your Cosmic Strain Name</span>
+            </button>
           </div>
         </div>
       </section>
+
+      {/* Daily Challenge */}
+      <DailyChallenge />
 
       {/* Today's Card */}
       {card && (
@@ -465,6 +480,13 @@ export default function Today() {
         <FourTwentyModal
           onClose={() => setShow420Modal(false)}
           onAwardPoints={award420Points}
+        />
+      )}
+
+      {/* Strain Name Generator Modal */}
+      {showStrainGenerator && (
+        <StrainNameGenerator
+          onClose={() => setShowStrainGenerator(false)}
         />
       )}
     </div>

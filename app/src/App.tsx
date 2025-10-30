@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import Today from './routes/Today';
 import Calendar from './routes/Calendar';
@@ -11,8 +12,52 @@ import Onboarding from './routes/Onboarding';
 import StreakBadge from './components/StreakBadge';
 import ThemeToggle from './components/ThemeToggle';
 import FloatingParticles from './components/FloatingParticles';
+import KonamiModal from './components/KonamiModal';
+import { useKonamiCode } from './hooks/useKonamiCode';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
 
 function App() {
+  const [showKonamiModal, setShowKonamiModal] = useState(false);
+
+  // Konami Code Easter Egg
+  useKonamiCode(() => {
+    // Only show once per day
+    const lastShown = localStorage.getItem('last_konami_shown');
+    const today = new Date().toDateString();
+
+    if (lastShown !== today) {
+      setShowKonamiModal(true);
+      localStorage.setItem('last_konami_shown', today);
+    }
+  });
+
+  async function awardKonamiPoints() {
+    const userId = 1; // TODO: Get from auth context
+
+    try {
+      await fetch(`${API_BASE}/api/points/award`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          points: 100,
+          reason: 'Konami Code Activated! 🎮',
+          category: 'easter_egg'
+        })
+      });
+
+      // Try to unlock the achievement
+      await fetch(`${API_BASE}/api/achievements/1/unlock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+      });
+    } catch (error) {
+      console.error('Failed to award Konami points:', error);
+    }
+  }
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-900 text-white bg-cannabis-pattern">
@@ -96,6 +141,14 @@ function App() {
           <p>For adults 21+ in legal jurisdictions.</p>
           <p className="mt-2">Educational content only; not medical advice.</p>
         </footer>
+
+        {/* Konami Code Modal */}
+        {showKonamiModal && (
+          <KonamiModal
+            onClose={() => setShowKonamiModal(false)}
+            onAwardPoints={awardKonamiPoints}
+          />
+        )}
       </div>
     </BrowserRouter>
   );
