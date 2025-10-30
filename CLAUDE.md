@@ -111,6 +111,18 @@ wrangler d1 execute 365db --remote --file=./worker/seed/seed.sql  # Seed product
       AchievementModal.tsx # Achievement unlock celebration
       CommunityStats.tsx   # Anonymous aggregated metrics
       RecommendationsCarousel.tsx  # Personalized content slider
+      DailyChallenge.tsx   # Daily micro-missions (Phase 3)
+      MunchiesTracker.tsx  # Snack tracking with stats (Phase 4)
+      StrainNameGenerator.tsx  # Random strain name generator (Phase 3)
+      FourTwentyModal.tsx  # 4:20 easter egg celebration (Phase 1)
+      KonamiModal.tsx      # Konami code easter egg (Phase 3)
+      ShakeModal.tsx       # Shake gesture easter egg (Phase 4)
+      TripleTapModal.tsx   # Triple-tap easter egg (Phase 4)
+      FloatingParticles.tsx  # Background ambient particles (Phase 2)
+    /hooks
+      useKonamiCode.ts     # Konami code sequence detection
+      useShakeGesture.ts   # Device motion shake detection
+      useTripleTap.ts      # Triple-click sequence detection
     /lib
       api.ts               # API client
       push.ts              # Push subscription helpers
@@ -288,10 +300,64 @@ Pro users are identified by `subscriptions.status='active'` check; when true, `/
 
 Community stats (`/api/community/stats`) only return data if >10 users in the cohort. Otherwise returns `{ message: "Not enough data..." }` and the UI component renders nothing.
 
+## Stoner Vibe Enhancements (Phases 1-4)
+
+The app has been transformed from a professional wellness app into a fun, engaging daily companion through 4 implementation phases:
+
+### Phase 1: Copy & Personality
+- **4:20 Easter Egg:** Detects 4:20 AM/PM and shows celebration modal (+42 points)
+- **Stoner-ified Copy:** Fun, authentic language throughout the app
+- **Random Loading States:** 10 fun loading messages ("Taking a hit...", "Rolling up the data...")
+- **Daily Puns:** 10 rotating cannabis jokes that change daily
+- **Funny Error Messages:** 5 variations ("Error 420: Resource too relaxed...")
+
+### Phase 2: Visual Polish
+- **Confetti Celebrations:** react-confetti integration for achievement unlocks
+- **Floating Particles:** 15 ambient emoji particles (🍃, 🌿, 💨, ✨, 💚) floating in background
+- **Stoner Horoscope:** 10 daily fortunes that rotate ("The stars align... time to try that new edible.")
+- **Enhanced Onboarding:** Welcoming copy ("Hell Yeah, Let's Go 🚀", "Just Vibing 🌊" goal)
+- **Animated Gradients:** Custom Tailwind animations (gradient, float, glow-pulse)
+
+### Phase 3: Interactive Features
+- **Daily Challenge System:** 8 rotating challenge types (try new method, share app, log session, hydrate, meditate, organize stash, listen to album, read content) with accept/complete flow, localStorage persistence, 10-50 points per completion
+- **Strain Name Generator:** Modal with random strain name generator (27 adjectives × 27 nouns × 20 suffixes) with share functionality, generates names like "Crystal Kush Supreme" or "Galactic Dream 420"
+- **Konami Code Easter Egg:** ↑↑↓↓←→←→BA sequence detection, rainbow confetti explosion, +100 points, "Code Master" achievement
+
+### Phase 4: Advanced Engagement
+- **Munchies Tracker:** 6 categories (sweet, salty, savory, healthy, spicy, drinks) with 36 quick-log suggestions, custom input, stats dashboard (total logged, streak days, most common), localStorage persistence, +5 points per log, "Munchie Master" achievement at 20 logs
+- **Shake Gesture Easter Egg:** Mobile-only DeviceMotionEvent detection, shake phone to unlock +25 points and "Shake Master" achievement, once per day
+- **Triple-Tap Easter Egg:** Triple-tap cannabis leaf logo in header for +50 points and "Tap Master" achievement, once per day
+
+### Key Implementation Patterns
+
+**LocalStorage Persistence:**
+- All interactive features use localStorage with date-based keys
+- Pattern: Check `localStorage.getItem('feature_last_shown') !== today` before showing
+- Keys: `daily_challenge`, `munchies_log`, `last_420_shown`, `last_konami_shown`, `last_shake_shown`, `last_tripletap_shown`
+
+**Points System:**
+- API endpoint: `POST /api/points/award`
+- Payload: `{ user_id, points, reason, category }`
+- Categories: `daily`, `challenge`, `munchies`, `easter_egg`
+- All features auto-award points on completion
+
+**Modal Pattern:**
+- Consistent modal structure across all easter eggs
+- Auto-close timers (5-10 seconds)
+- Success animations using CSS keyframes
+- OnClose and onAwardPoints callbacks
+
+**Custom Hooks:**
+- `useKonamiCode(callback)` - Keyboard sequence detection
+- `useShakeGesture(callback, options)` - Device motion detection
+- `useTripleTap(callback, elementRef)` - Triple-click detection
+- All hooks implement once-per-day localStorage checks
+
 ## Development Tips
 
 - Use `.dev.vars` for local secrets (not committed)
 - Seed demo data with partner "DreamCo" and sample campaigns via `worker/seed/demo.ts`
 - QR codes for coupons: `/qr/<code>.svg` (cacheable SVG)
 - Partner portal accessed at `/partner/*` routes
-- All new features documented in `COMPLETE_IMPLEMENTATION_SUMMARY.md`
+- Phase 1-4 features documented in `PHASE_1_COMPLETE.md`, `PHASE_2_COMPLETE.md`, `PHASE_3_COMPLETE.md`, `STONER_VIBE_ENHANCEMENTS.md`
+- All new features follow the pattern: component → localStorage → API points → achievement unlock
