@@ -4,15 +4,11 @@ import { Link } from 'react-router-dom';
 const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
 
 interface Recommendation {
-  card: {
-    id: number;
-    date: string;
-    title: string;
-    body_md: string;
-    tags: string;
-  };
-  score: number;
-  reasons: string[];
+  id: number;
+  date: string;
+  title: string;
+  body_md: string;
+  tags: string;
 }
 
 function RecommendationsCarousel() {
@@ -62,16 +58,16 @@ function RecommendationsCarousel() {
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
         {recommendations.map((rec) => (
           <Link
-            key={rec.card.id}
-            to={`/?date=${rec.card.date}`}
+            key={rec.id}
+            to={`/?date=${rec.date}`}
             className="flex-none w-80 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700 hover:border-primary/50 transition-all hover:shadow-lg transform hover:-translate-y-1"
           >
-            <h4 className="text-lg font-bold mb-2 line-clamp-2">{rec.card.title}</h4>
+            <h4 className="text-lg font-bold mb-2 line-clamp-2">{rec.title}</h4>
             <p className="text-sm text-gray-400 mb-3 line-clamp-3">
-              {rec.card.body_md.substring(0, 150)}...
+              {rec.body_md.substring(0, 150)}...
             </p>
             <div className="flex flex-wrap gap-1 mb-3">
-              {rec.card.tags.split(',').slice(0, 3).map((tag) => (
+              {rec.tags.split(',').slice(0, 3).map((tag) => (
                 <span
                   key={tag}
                   className="text-xs px-2 py-1 bg-primary/20 text-primary rounded-full"
@@ -80,12 +76,6 @@ function RecommendationsCarousel() {
                 </span>
               ))}
             </div>
-            {rec.reasons.length > 0 && (
-              <div className="bg-teal/10 border border-teal/30 rounded-lg p-3">
-                <p className="text-xs text-teal font-semibold mb-1">Why this?</p>
-                <p className="text-xs text-gray-400">{rec.reasons[0]}</p>
-              </div>
-            )}
           </Link>
         ))}
       </div>
