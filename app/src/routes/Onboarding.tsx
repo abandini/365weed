@@ -81,16 +81,16 @@ function Onboarding() {
             <div className="text-center">
               <div className="text-6xl mb-6">🌿</div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-teal to-gold bg-clip-text text-transparent mb-4">
-                Welcome to 365 Days of Weed
+                Welcome to Your New Favorite App 🌿
               </h1>
               <p className="text-lg text-gray-300 mb-8">
-                Your daily companion for cannabis education, wellness tracking, and community insights.
+                We're here to make your cannabis journey more fun, more informed, and way more chill. Let's get you set up! 😎
               </p>
               <button
                 onClick={() => setStep(2)}
                 className="px-8 py-4 bg-gradient-to-r from-primary to-teal hover:from-primary-light hover:to-teal-light text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-glow transform hover:-translate-y-0.5"
               >
-                Get Started →
+                Hell Yeah, Let's Go 🚀
               </button>
             </div>
           )}
@@ -98,9 +98,9 @@ function Onboarding() {
           {/* Step 2: Age Verification */}
           {step === 2 && (
             <div>
-              <h2 className="text-3xl font-bold mb-4 text-center">Age Verification</h2>
+              <h2 className="text-3xl font-bold mb-4 text-center">Quick Legal Check...</h2>
               <p className="text-gray-300 mb-8 text-center">
-                You must be 21 or older to use this service.
+                Are you 21+? (We gotta ask! 🙃)
               </p>
               <div className="flex gap-4 justify-center">
                 <button
@@ -108,15 +108,15 @@ function Onboarding() {
                     updateData({ is_21: true });
                     setStep(3);
                   }}
-                  className="px-12 py-4 bg-primary hover:bg-primary-light text-white font-bold rounded-xl transition-all"
+                  className="px-12 py-4 bg-primary hover:bg-primary-light text-white font-bold rounded-xl transition-all transform hover:scale-105"
                 >
-                  I'm 21 or Older
+                  Yep, I'm 21+ ✅
                 </button>
                 <button
-                  onClick={() => alert('You must be 21 or older to use this service.')}
+                  onClick={() => alert('Sorry friend, come back when you\'re 21! 🎂 (We\'ll still be here)')}
                   className="px-12 py-4 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl transition-all"
                 >
-                  Under 21
+                  Not Yet
                 </button>
               </div>
             </div>
@@ -169,9 +169,9 @@ function Onboarding() {
           {/* Step 4: Goals */}
           {step === 4 && (
             <div>
-              <h2 className="text-3xl font-bold mb-4">What brings you here?</h2>
+              <h2 className="text-3xl font-bold mb-4">What are you trying to achieve with cannabis?</h2>
               <p className="text-gray-300 mb-6">
-                Select all that apply. We'll personalize your experience.
+                Pick your vibe(s). We'll tailor your experience. 🎯
               </p>
               <div className="grid grid-cols-2 gap-4 mb-6">
                 {[
@@ -179,8 +179,8 @@ function Onboarding() {
                   { id: 'focus', label: 'Focus & Productivity', icon: '🎯' },
                   { id: 'pain', label: 'Pain Management', icon: '💪' },
                   { id: 'anxiety', label: 'Anxiety Relief', icon: '🧘' },
-                  { id: 'recreation', label: 'Recreation', icon: '🎉' },
-                  { id: 'education', label: 'Education', icon: '📚' }
+                  { id: 'vibing', label: 'Just Vibing', icon: '🌊' },
+                  { id: 'education', label: 'Learning More', icon: '📚' }
                 ].map(goal => (
                   <button
                     key={goal.id}
@@ -274,23 +274,23 @@ function Onboarding() {
           {step === 6 && (
             <div className="text-center">
               <div className="text-6xl mb-6">🎉</div>
-              <h2 className="text-3xl font-bold mb-4">You're all set!</h2>
+              <h2 className="text-3xl font-bold mb-4">Hell Yeah, You're In! 🚀</h2>
               <p className="text-lg text-gray-300 mb-8">
-                Start your cannabis wellness journey today. Explore daily content, track your experiences, and unlock achievements.
+                Time to explore some dank content, track your journey, and unlock achievements. Let's do this! 💪
               </p>
-              <div className="bg-gray-700/50 rounded-xl p-6 mb-8">
-                <h3 className="text-xl font-bold mb-4">Your Profile</h3>
+              <div className="bg-gradient-to-br from-gray-700/50 to-gray-600/30 rounded-xl p-6 mb-8 border border-gray-600/50">
+                <h3 className="text-xl font-bold mb-4 text-primary">Your Vibe Check ✅</h3>
                 <div className="text-left space-y-2 text-sm">
-                  <p><span className="text-gray-400">Location:</span> {data.state_code}</p>
-                  <p><span className="text-gray-400">Goals:</span> {data.goals.join(', ') || 'None selected'}</p>
-                  <p><span className="text-gray-400">Methods:</span> {data.preferred_methods.join(', ') || 'None selected'}</p>
+                  <p><span className="text-gray-400">📍 Location:</span> <span className="text-white font-medium">{data.state_code}</span></p>
+                  <p><span className="text-gray-400">🎯 Goals:</span> <span className="text-white font-medium">{data.goals.join(', ') || 'Just exploring'}</span></p>
+                  <p><span className="text-gray-400">💨 Methods:</span> <span className="text-white font-medium">{data.preferred_methods.join(', ') || 'Open to all'}</span></p>
                 </div>
               </div>
               <button
                 onClick={completeOnboarding}
-                className="px-12 py-4 bg-gradient-to-r from-primary to-teal hover:from-primary-light hover:to-teal-light text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-glow transform hover:-translate-y-0.5"
+                className="px-12 py-4 bg-gradient-to-r from-primary to-teal hover:from-primary-light hover:to-teal-light text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-glow transform hover:-translate-y-0.5 hover:scale-105"
               >
-                Start Exploring →
+                Show Me The Good Stuff! 🌿
               </button>
             </div>
           )}

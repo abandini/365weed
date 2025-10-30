@@ -173,6 +173,21 @@ export default function Today() {
   ];
   const dailyPun = weedPuns[new Date().getDate() % weedPuns.length];
 
+  // Daily stoner horoscope
+  const stonerHoroscopes = [
+    "The stars align... time to try that new edible. ✨",
+    "Mercury is in retrograde, so go easy on the sativa today. 🪐",
+    "Your lucky strain today: anything with 'kush' in the name. 🍀",
+    "The universe says: hydrate, then elevate. 💧➡️☁️",
+    "Today's vibe: chill indica and good company. 🌙👯",
+    "Warning: You may experience extreme relaxation. Proceed with caution. ⚠️😌",
+    "The cosmos recommend: 2 parts creativity, 1 part couch lock. 🎨🛋️",
+    "Lucky number: 420. Lucky activity: literally anything. 🎲",
+    "The moon is full... perfect for a smoke session under the stars. 🌕✨",
+    "Your vibe today: main character energy, but make it stoned. 😎🌿"
+  ];
+  const dailyHoroscope = stonerHoroscopes[new Date().getDate() % stonerHoroscopes.length];
+
   return (
     <div className="space-y-8">
       {/* Hero Section */}
@@ -212,6 +227,18 @@ export default function Today() {
           <div className="flex-1">
             <h3 className="text-lg font-bold text-gold mb-2">Daily Dose of Wisdom 😄</h3>
             <p className="text-gray-300 leading-relaxed">{dailyPun}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Stoner Horoscope */}
+      <section className="bg-gradient-to-br from-purple/20 to-teal/20 rounded-2xl p-6 border border-purple/30 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">🔮</div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-purple-light mb-2">Your Daily Stoner Horoscope</h3>
+            <p className="text-gray-300 leading-relaxed italic">{dailyHoroscope}</p>
+            <p className="text-xs text-gray-500 mt-3">✨ The cosmos have spoken ✨</p>
           </div>
         </div>
       </section>

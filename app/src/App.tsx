@@ -10,11 +10,14 @@ import Upgrade from './routes/Upgrade';
 import Onboarding from './routes/Onboarding';
 import StreakBadge from './components/StreakBadge';
 import ThemeToggle from './components/ThemeToggle';
+import FloatingParticles from './components/FloatingParticles';
 
 function App() {
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-gray-900 text-white bg-cannabis-pattern">
+        {/* Floating background particles */}
+        <FloatingParticles />
         <nav className="sticky top-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 shadow-lg">
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">

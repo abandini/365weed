@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Confetti from 'react-confetti';
 
 interface Achievement {
   id: number;
@@ -18,17 +19,45 @@ interface AchievementModalProps {
 
 export function AchievementModal({ achievement, onClose }: AchievementModalProps) {
   const [visible, setVisible] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
 
   useEffect(() => {
     if (achievement) {
       setVisible(true);
-      // Auto-close after 5 seconds
-      const timer = setTimeout(() => {
-        handleClose();
+      setShowConfetti(true);
+
+      // Stop confetti after 5 seconds
+      const confettiTimer = setTimeout(() => {
+        setShowConfetti(false);
       }, 5000);
-      return () => clearTimeout(timer);
+
+      // Auto-close after 8 seconds
+      const closeTimer = setTimeout(() => {
+        handleClose();
+      }, 8000);
+
+      return () => {
+        clearTimeout(confettiTimer);
+        clearTimeout(closeTimer);
+      };
     }
   }, [achievement]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleClose = () => {
     setVisible(false);
@@ -86,6 +115,18 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
       }`}
       onClick={handleClose}
     >
+      {/* Confetti Effect */}
+      {showConfetti && (
+        <Confetti
+          width={windowDimensions.width}
+          height={windowDimensions.height}
+          recycle={false}
+          numberOfPieces={300}
+          gravity={0.3}
+          colors={['#17a34a', '#14b8a6', '#f59e0b', '#a855f7', '#22c55e', '#fbbf24']}
+        />
+      )}
+
       <div
         className={`achievement-modal transform transition-all duration-500 ${
           visible ? 'scale-100 rotate-0' : 'scale-50 rotate-12'
