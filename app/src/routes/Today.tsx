@@ -7,6 +7,7 @@ import RecommendationsCarousel from '../components/RecommendationsCarousel';
 import FourTwentyModal from '../components/FourTwentyModal';
 import DailyChallenge from '../components/DailyChallenge';
 import StrainNameGenerator from '../components/StrainNameGenerator';
+import MunchiesTracker from '../components/MunchiesTracker';
 
 export default function Today() {
   const [searchParams] = useSearchParams();
@@ -257,6 +258,9 @@ export default function Today() {
 
       {/* Daily Challenge */}
       <DailyChallenge />
+
+      {/* Munchies Tracker */}
+      <MunchiesTracker />
 
       {/* Today's Card */}
       {card && (
