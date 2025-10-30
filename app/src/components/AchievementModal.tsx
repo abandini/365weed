@@ -37,6 +37,18 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
 
   if (!achievement) return null;
 
+  const getUnlockMessage = () => {
+    const messages = [
+      "BRUH! You just unlocked",
+      "No way! You're a",
+      "Hell yeah! You got",
+      "You absolute legend!",
+      "Holy shit, you did it!",
+      "Crushing it! You unlocked"
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
   const getTierColor = (tier: string) => {
     switch (tier) {
       case 'bronze':
@@ -94,11 +106,11 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
           <div className="relative z-10 text-center">
             <div className="text-6xl mb-4 animate-bounce">{achievement.icon_emoji}</div>
 
-            <div className="mb-2 text-sm uppercase tracking-wider opacity-90">
-              Achievement Unlocked!
+            <div className="mb-2 text-lg font-bold tracking-wide opacity-90">
+              {getUnlockMessage()}
             </div>
 
-            <h2 className="text-3xl font-bold mb-2">{achievement.name}</h2>
+            <h2 className="text-3xl font-bold mb-2">{achievement.name}!</h2>
 
             <p className="text-white/90 mb-4">{achievement.description}</p>
 
@@ -114,9 +126,9 @@ export function AchievementModal({ achievement, onClose }: AchievementModalProps
 
             <button
               onClick={handleClose}
-              className="px-6 py-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm"
+              className="px-6 py-3 rounded-full bg-white/20 hover:bg-white/30 transition-all transform hover:scale-105 backdrop-blur-sm font-bold"
             >
-              Awesome!
+              Hell Yeah! 🎉
             </button>
           </div>
         </div>

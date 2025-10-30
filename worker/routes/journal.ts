@@ -160,10 +160,19 @@ router.get('/', async (c) => {
  */
 router.get('/stats', async (c) => {
   const userId = c.req.query('user_id');
-  const days = parseInt(c.req.query('days') || '30', 10);
+  const daysParam = c.req.query('days');
 
   if (!userId) {
     return c.json({ error: 'user_id required' }, 400);
+  }
+
+  let days = 30;
+  if (daysParam !== null && daysParam !== undefined) {
+    const parsed = Number.parseInt(daysParam, 10);
+    if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 365) {
+      return c.json({ error: 'days must be an integer between 1 and 365' }, 400);
+    }
+    days = parsed;
   }
 
   const stats = await db.first(

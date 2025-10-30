@@ -4,6 +4,7 @@ import { getToday, getAds, trackAd, DayCard, Ad } from '../lib/api';
 import AchievementModal from '../components/AchievementModal';
 import CommunityStats from '../components/CommunityStats';
 import RecommendationsCarousel from '../components/RecommendationsCarousel';
+import FourTwentyModal from '../components/FourTwentyModal';
 
 export default function Today() {
   const [searchParams] = useSearchParams();
@@ -12,12 +13,35 @@ export default function Today() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newAchievement, setNewAchievement] = useState<any>(null);
+  const [show420Modal, setShow420Modal] = useState(false);
   const dateParam = searchParams.get('date');
 
   useEffect(() => {
     loadContent();
     checkInForStreak();
+    check420Time();
   }, [dateParam]);
+
+  // Check for 4:20 Easter Egg
+  function check420Time() {
+    const now = new Date();
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+
+    // Check if it's 4:20 AM (4) or 4:20 PM (16)
+    if ((hour === 4 || hour === 16) && minute === 20) {
+      // Only show once per day
+      const lastShown = localStorage.getItem('last_420_shown');
+      const today = new Date().toDateString();
+
+      if (lastShown !== today) {
+        setTimeout(() => {
+          setShow420Modal(true);
+          localStorage.setItem('last_420_shown', today);
+        }, 1000); // Small delay for dramatic effect
+      }
+    }
+  }
 
   async function checkInForStreak() {
     const userId = 1; // TODO: Get from auth context
@@ -39,6 +63,29 @@ export default function Today() {
       }
     } catch (err) {
       console.error('Check-in failed:', err);
+    }
+  }
+
+  async function award420Points() {
+    const userId = 1; // TODO: Get from auth context
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
+
+    try {
+      // Award 42 bonus points via points ledger
+      await fetch(`${API_BASE}/api/points/award`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          points: 42,
+          reason: '4:20 Easter Egg!',
+          category: 'bonus'
+        })
+      });
+
+      console.log('420 bonus points awarded! 🎉');
+    } catch (err) {
+      console.error('Failed to award 420 points:', err);
     }
   }
 
@@ -70,26 +117,61 @@ export default function Today() {
   }
 
   if (loading) {
+    const loadingMessages = [
+      "Rolling one up... 🌿",
+      "Packing the bowl... 💨",
+      "Lighting it up... 🔥",
+      "Taking a hit... 😶‍🌫️",
+      "Hold on, we're a little baked... 🍪"
+    ];
+    const randomMessage = loadingMessages[Math.floor(Math.random() * loadingMessages.length)];
+
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-gray-400">Loading today's content...</div>
+      <div className="flex flex-col items-center justify-center min-h-[400px]">
+        <div className="text-5xl animate-spin mb-4">🌿</div>
+        <div className="text-gray-400 text-lg">{randomMessage}</div>
       </div>
     );
   }
 
   if (error) {
+    const errorMessages = [
+      "Oops! Something went sideways... 🤪",
+      "Well, that didn't work. Our bad! 😅",
+      "Error 420: Resource too relaxed to respond 💤",
+      "Hmm, that's not right. Let's try again? 🔄",
+      "The internet gremlins struck again... 👾",
+    ];
+    const randomError = errorMessages[Math.floor(Math.random() * errorMessages.length)];
+
     return (
-      <div className="bg-red-900/20 border border-red-500 rounded-lg p-4">
-        <p className="text-red-400">Error: {error}</p>
+      <div className="bg-red-900/20 border border-red-500 rounded-lg p-6">
+        <p className="text-red-400 text-lg font-semibold mb-2">{randomError}</p>
+        <p className="text-red-300/70 text-sm mb-4">{error}</p>
         <button
           onClick={loadContent}
-          className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded"
+          className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-bold transition-all transform hover:scale-105"
         >
-          Retry
+          Try Again 🔄
         </button>
       </div>
     );
   }
+
+  // Daily pun/joke
+  const weedPuns = [
+    "Why did the stoner plant cheerios? He thought they were donut seeds! 🍩",
+    "What's a stoner's favorite exercise? Weed whacking! 💪",
+    "What do you call a potato that smokes weed? A baked potato! 🥔",
+    "I'm reading a book on anti-gravity. It's impossible to put down! 📚",
+    "Why don't stoners ever win races? They're always getting baked at the finish line! 🏁",
+    "What's a stoner's favorite subject? HIGH-story! 📖",
+    "Why did the stoner cross the road? I forgot... 🤔",
+    "Cannabis: Because life's too short to be uptight 🌿",
+    "Stay high on life... and other things 😉",
+    "Inhale the good shit, exhale the bullshit 💨"
+  ];
+  const dailyPun = weedPuns[new Date().getDate() % weedPuns.length];
 
   return (
     <div className="space-y-8">
@@ -103,7 +185,7 @@ export default function Today() {
             </svg>
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-white">Today&apos;s Cannabis Knowledge</h1>
-              <p className="text-sm text-gray-300 mt-1">Your daily dose of education, wellness, and discovery</p>
+              <p className="text-sm text-gray-300 mt-1">Your daily dose of dank knowledge & good vibes 🌿✨</p>
             </div>
           </div>
           <div className="flex gap-4 text-sm text-gray-300">
@@ -119,6 +201,17 @@ export default function Today() {
               <span className="w-2 h-2 rounded-full bg-gold"></span>
               <span>Community Driven</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Daily Pun/Joke */}
+      <section className="bg-gradient-to-br from-gold/20 to-purple/20 rounded-2xl p-6 border border-gold/30 shadow-lg">
+        <div className="flex items-start gap-4">
+          <div className="text-4xl">💚</div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gold mb-2">Daily Dose of Wisdom 😄</h3>
+            <p className="text-gray-300 leading-relaxed">{dailyPun}</p>
           </div>
         </div>
       </section>
@@ -337,6 +430,14 @@ export default function Today() {
         <AchievementModal
           achievement={newAchievement}
           onClose={() => setNewAchievement(null)}
+        />
+      )}
+
+      {/* 4:20 Easter Egg Modal */}
+      {show420Modal && (
+        <FourTwentyModal
+          onClose={() => setShow420Modal(false)}
+          onAwardPoints={award420Points}
         />
       )}
     </div>

@@ -239,13 +239,13 @@ router.get('/analytics', verifyPartnerAuth, async (c) => {
   const stats = await db.first(
     c.env.DB,
     `SELECT
-       COUNT(*) as total_impressions,
-       SUM(CASE WHEN event_type = 'view' THEN 1 ELSE 0 END) as views,
-       SUM(CASE WHEN event_type = 'click' THEN 1 ELSE 0 END) as clicks
-     FROM ad_impressions ai
-     JOIN ads a ON a.id = ai.ad_id
-     WHERE ai.date >= date('now', '-30 days')`,
-    []
+       SUM(CASE WHEN event_type IN ('impression', 'view') THEN 1 ELSE 0 END) as total_impressions,
+       SUM(CASE WHEN event_type LIKE 'view%' THEN 1 ELSE 0 END) as views,
+       SUM(CASE WHEN event_type LIKE '%click%' THEN 1 ELSE 0 END) as clicks
+     FROM campaign_events
+     WHERE campaign_id = ?
+       AND occurred_at >= datetime('now', '-30 days')`,
+    [parseInt(campaignId, 10)]
   );
 
   return c.json({ stats });

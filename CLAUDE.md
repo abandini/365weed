@@ -42,26 +42,31 @@ wrangler d1 execute 365db --file ./worker/seed/seed.sql
 ## Development Commands
 
 ```bash
-# Run Worker locally
-wrangler dev --local
+# Worker Development
+npm run dev                          # Run Worker locally (wrangler dev --local)
+npm run dev:remote                   # Run Worker with remote resources
+wrangler dev --test-scheduled        # Test scheduled cron jobs locally
+npm run deploy                       # Deploy Worker to production
 
-# Run Worker with scheduled events
-wrangler dev --test-scheduled
+# PWA Frontend
+npm run app:dev                      # Run React dev server (cd app && npm run dev)
+npm run app:build                    # Build PWA (cd app && npm run build)
+npx wrangler pages deploy app/dist --project-name=weed365-pwa  # Deploy PWA to Cloudflare Pages
 
-# Deploy Worker to production
-wrangler deploy
+# Testing
+npm run test                         # Unit tests (Vitest)
+npm run test:watch                   # Unit tests in watch mode
+npm run test:integration             # Integration tests only
+npm run test:e2e                     # E2E tests (Playwright)
+npm run test:e2e:ui                  # E2E tests with UI mode
+npm run test:all                     # Run all tests (unit + e2e)
 
-# Build PWA frontend
-cd app && npm i && npm run build
-
-# Run tests
-npm run test              # Unit tests (Vitest)
-npm run test:e2e          # E2E tests (Playwright)
-
-# Database migrations
-wrangler d1 migrations create 365db <name>
-wrangler d1 migrations apply 365db
-wrangler d1 migrations apply 365db --environment production
+# Database Migrations
+npm run migrations:create            # Create new migration
+npm run migrations:apply             # Apply migrations locally
+npm run migrations:apply:prod        # Apply migrations to production
+wrangler d1 execute 365db --file=./worker/schema.sql  # Execute SQL file
+wrangler d1 execute 365db --remote --file=./worker/seed/seed.sql  # Seed production DB
 ```
 
 ## Project Structure
@@ -91,14 +96,26 @@ wrangler d1 migrations apply 365db --environment production
 /app                       # React PWA (frontend)
   /src
     /routes                # Page components
-      Today.tsx            # Daily card + sponsored ads
-      Calendar.tsx         # Historical view
-      Journal.tsx          # User journal
+      Today.tsx            # Daily card + sponsored ads + community stats
+      Calendar.tsx         # Historical view (grid/list modes)
+      Journal.tsx          # User journal with charts
+      Achievements.tsx     # Achievement gallery (20 achievements)
+      Settings.tsx         # Preferences, notifications, account
+      Referrals.tsx        # Referral program with rewards
+      Upgrade.tsx          # Subscription tiers (Free/Pro/Premium)
+      Onboarding.tsx       # 6-step new user wizard
       PartnerDashboard.tsx # Advertiser portal
+    /components
+      StreakBadge.tsx      # Navigation badge (🔥 + points)
+      ThemeToggle.tsx      # Dark/light mode toggle
+      AchievementModal.tsx # Achievement unlock celebration
+      CommunityStats.tsx   # Anonymous aggregated metrics
+      RecommendationsCarousel.tsx  # Personalized content slider
     /lib
       api.ts               # API client
       push.ts              # Push subscription helpers
-    sw.ts                  # Service worker
+    App.tsx                # Root component with routing
+    sw.ts                  # Service worker (Workbox)
   vite.config.ts
   manifest.webmanifest
 
@@ -167,6 +184,16 @@ Ads are served with location + date + tag awareness using a fallback chain:
 - `subscriptions` — Stripe customer/subscription mapping
 - `push_subscriptions` — Web Push endpoints
 
+**Gamification (Phase 1):**
+- `streaks` — Daily check-in tracking (current_streak, longest_streak, streak_saves)
+- `achievements` — 20+ achievement definitions (5 categories)
+- `user_achievements` — Unlocked achievements per user
+- `points_ledger` — Point transactions (earned, spent, balance)
+
+**Social (Phase 2):**
+- `referrals` — User referral codes and stats
+- `user_preferences` — Content preferences (goals, methods, tags)
+
 ## Important Patterns
 
 ### KV Caching Strategy
@@ -226,10 +253,45 @@ STRIPE_PUBLISHABLE_KEY = "pk_live_..."
 3. Deploys Worker (`wrangler deploy`)
 4. Separate workflow builds PWA and publishes to Cloudflare Pages
 
+## Important Implementation Details
+
+### Frontend API Configuration
+
+All React components use the `API_BASE` pattern to support both development and production:
+
+```typescript
+const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
+```
+
+This allows the PWA to work when deployed to Cloudflare Pages while still pointing to the Worker API.
+
+### Authentication Pattern
+
+Currently uses hardcoded `userId = 1` throughout the codebase with `// TODO: Get from auth context` comments. This is intentional for MVP - full JWT-based auth is ready on the backend but not yet integrated into the frontend.
+
+### Gamification Flow
+
+- Daily check-in happens automatically on Today page load (`checkInForStreak()` in Today.tsx)
+- Points are awarded: 10 base + streak bonus (e.g., 15 points for 5-day streak)
+- Achievements unlock automatically and show celebration modal
+- Streak saves can be purchased with points (500 points each)
+
+### Subscription Tiers
+
+- **Free:** Daily content, 30-day journal, basic stats, achievements
+- **Pro ($1.99/mo):** Ad-free, 365-day journal, advanced analytics, email reports
+- **Premium ($4.99/mo):** All Pro + AI insights (100 queries/month), strain matching, partner discounts
+
+Pro users are identified by `subscriptions.status='active'` check; when true, `/api/ads` returns empty array.
+
+### Privacy Protection
+
+Community stats (`/api/community/stats`) only return data if >10 users in the cohort. Otherwise returns `{ message: "Not enough data..." }` and the UI component renders nothing.
+
 ## Development Tips
 
 - Use `.dev.vars` for local secrets (not committed)
 - Seed demo data with partner "DreamCo" and sample campaigns via `worker/seed/demo.ts`
 - QR codes for coupons: `/qr/<code>.svg` (cacheable SVG)
 - Partner portal accessed at `/partner/*` routes
-- Pro users: check `subscriptions.status='active'` and `current_period_end` timestamp
+- All new features documented in `COMPLETE_IMPLEMENTATION_SUMMARY.md`
