@@ -9,6 +9,7 @@ import Settings from './routes/Settings';
 import Referrals from './routes/Referrals';
 import Upgrade from './routes/Upgrade';
 import Onboarding from './routes/Onboarding';
+import Lists from './routes/Lists';
 import StreakBadge from './components/StreakBadge';
 import ThemeToggle from './components/ThemeToggle';
 import FloatingParticles from './components/FloatingParticles';
@@ -177,6 +178,13 @@ function App() {
                   <span>Achievements</span>
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-purple group-hover:w-full transition-all duration-300"></span>
                 </Link>
+                <Link
+                  to="/lists"
+                  className="relative group px-3 py-2 hover:text-pink transition-colors font-medium"
+                >
+                  <span>Lists</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-pink group-hover:w-full transition-all duration-300"></span>
+                </Link>
                 <StreakBadge userId={1} />
                 <ThemeToggle />
                 <Link
@@ -205,6 +213,8 @@ function App() {
             <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/partner" element={<PartnerDashboard />} />
+            <Route path="/lists" element={<Lists />} />
+            <Route path="/lists/:slug" element={<Lists />} />
           </Routes>
         </main>
 

@@ -15,6 +15,7 @@ import notificationsRouter from './routes/notifications';
 import referralsRouter from './routes/referrals';
 import recommendationsRouter from './routes/recommendations';
 import communityRouter from './routes/community';
+import listsRouter from './routes/lists';
 
 // Create Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -76,6 +77,7 @@ app.route('/api/notifications', notificationsRouter);
 app.route('/api/referrals', referralsRouter);
 app.route('/api/recommendations', recommendationsRouter);
 app.route('/api/community', communityRouter);
+app.route('/api/lists', listsRouter);
 
 // Coupon redirect
 app.get('/c/:code', async (c) => {
