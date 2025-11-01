@@ -74,14 +74,20 @@ wrangler d1 execute 365db --remote --file=./worker/seed/seed.sql  # Seed product
 ```
 /worker                    # Cloudflare Worker (Hono API)
   index.ts                 # Main Hono app + route mounting
-  /routes                  # API route handlers
-    today.ts               # Daily content cards
+  /routes                  # API route handlers (13 total)
+    today.ts               # Daily content cards with location-aware action buttons
     ads.ts                 # Ad serving + tracking
     journal.ts             # User journal entries
     push.ts                # Push notification subscriptions
     partners.ts            # Partner portal (campaign CRUD)
     stripe.ts              # Stripe checkout + webhooks
-    render.ts              # SSR for SEO
+    streaks.ts             # Daily check-in and streak tracking
+    achievements.ts        # Achievement definitions and user unlocks
+    notifications.ts       # Notification history
+    referrals.ts           # User referral codes and rewards
+    recommendations.ts     # Personalized content recommendations
+    community.ts           # Anonymous aggregated user stats
+    lists.ts               # Curated lifestyle listicles (NEW)
   /lib                     # Shared utilities
     db.ts                  # D1 helpers
     kv.ts                  # KV helpers
@@ -89,23 +95,27 @@ wrangler d1 execute 365db --remote --file=./worker/seed/seed.sql  # Seed product
     webpush.ts             # VAPID push notifications
   queue-consumer.ts        # Daily broadcast job
   durable.ts               # Rate limiting DO
-  schema.sql               # D1 schema definition
+  schema.sql               # D1 schema definition (300+ lines)
   /seed                    # Database seeding
+    seed.sql               # Core data (calendar content, achievements)
+    lists-seed.sql         # Curated lists definitions (20 lists)
+    list-items-seed.sql    # List items (89 items)
   types.ts                 # TypeScript definitions
 
 /app                       # React PWA (frontend)
   /src
-    /routes                # Page components
-      Today.tsx            # Daily card + sponsored ads + community stats
-      Calendar.tsx         # Historical view (grid/list modes)
-      Journal.tsx          # User journal with charts
-      Achievements.tsx     # Achievement gallery (20 achievements)
+    /routes                # Page components (10 total)
+      Today.tsx            # Daily card + ads + action buttons + community stats
+      Calendar.tsx         # Historical view (grid/list toggle, 439 days of content)
+      Journal.tsx          # User journal with charts (overview/entries toggle)
+      Achievements.tsx     # Achievement gallery (20 achievements, 5 categories)
+      Lists.tsx            # Curated lists (grid + detail views) (NEW)
       Settings.tsx         # Preferences, notifications, account
       Referrals.tsx        # Referral program with rewards
       Upgrade.tsx          # Subscription tiers (Free/Pro/Premium)
       Onboarding.tsx       # 6-step new user wizard
       PartnerDashboard.tsx # Advertiser portal
-    /components
+    /components           # 13 components total
       StreakBadge.tsx      # Navigation badge (🔥 + points)
       ThemeToggle.tsx      # Dark/light mode toggle
       AchievementModal.tsx # Achievement unlock celebration
@@ -119,7 +129,7 @@ wrangler d1 execute 365db --remote --file=./worker/seed/seed.sql  # Seed product
       ShakeModal.tsx       # Shake gesture easter egg (Phase 4)
       TripleTapModal.tsx   # Triple-tap easter egg (Phase 4)
       FloatingParticles.tsx  # Background ambient particles (Phase 2)
-    /hooks
+    /hooks                # 3 custom hooks
       useKonamiCode.ts     # Konami code sequence detection
       useShakeGesture.ts   # Device motion shake detection
       useTripleTap.ts      # Triple-click sequence detection
@@ -205,6 +215,12 @@ Ads are served with location + date + tag awareness using a fallback chain:
 **Social (Phase 2):**
 - `referrals` — User referral codes and stats
 - `user_preferences` — Content preferences (goals, methods, tags)
+
+**Curated Lists (Latest):**
+- `curated_lists` — List metadata (title, slug, category, description, 20 total)
+- `list_items` — Individual items with "why_high" explanations (89 items)
+- `list_likes` — User engagement tracking
+- `list_views` — View analytics
 
 ## Important Patterns
 
@@ -353,11 +369,62 @@ The app has been transformed from a professional wellness app into a fun, engagi
 - `useTripleTap(callback, elementRef)` - Triple-click detection
 - All hooks implement once-per-day localStorage checks
 
+## Curated Lists Feature
+
+The latest major feature adds lifestyle listicles optimized for elevated experiences:
+
+### Content Structure
+- **20 lists** across 5 categories (movies, music, food, activities, products)
+- **89 detailed items** with rich metadata (year, genre, director, streaming platforms, etc.)
+- Each item includes "Why It Hits Different" - cannabis-specific insights
+
+### API Endpoints
+```bash
+GET  /api/lists                    # All lists with filtering
+GET  /api/lists/:slug              # List detail with items
+POST /api/lists/:id/view           # Track view
+POST /api/lists/:id/like           # Toggle like
+GET  /api/lists/meta/categories    # Category stats
+```
+
+### Frontend Views
+- **Grid View** (`/lists`) - Category filters, featured badges, stats
+- **Detail View** (`/lists/:slug`) - Numbered items, metadata badges, like button
+
+### Example Lists
+- "13 Horror Movies to Watch While High" (13 items)
+- "18 Easy Munchie Recipes You Can't Mess Up" (18 items)
+- "12 Albums Perfect for a Smoke Session" (12 items)
+- "10 Mind-Bending Movies for Your Next Session" (10 items)
+
+See `CURATED_LISTS_FEATURE.md` for complete documentation.
+
+## Daily Content with Smart Action Buttons
+
+The Today view includes location-aware action buttons that parse call-to-action text:
+
+### Smart Link Generation
+- Detects search intent (dispensaries, strains, topicals, CBD, edibles, vaporizers, deals, delivery)
+- Uses IP geolocation to personalize button text ("Find Dispensaries in Cleveland Heights")
+- Generates links for Weedmaps, Leafly, and Google Maps
+- Returns `actionButton` object in `/api/today` response
+
+### Implementation
+Located in `worker/routes/today.ts` - extracts CTA from content, determines search type, formats location, generates URLs.
+
+## Content Calendar
+
+439 days of daily cannabis content (Oct 2025 - Dec 2026):
+- Themed daily structure (Mend-it Monday, Terpene Tuesday, etc.)
+- Strain showcases, terpene education, famous figures, consumption methods
+- Holiday content (4/20, Christmas, New Year, etc.)
+- Stored in `day_cards` table, sorted ascending by date
+
 ## Development Tips
 
 - Use `.dev.vars` for local secrets (not committed)
-- Seed demo data with partner "DreamCo" and sample campaigns via `worker/seed/demo.ts`
-- QR codes for coupons: `/qr/<code>.svg` (cacheable SVG)
 - Partner portal accessed at `/partner/*` routes
-- Phase 1-4 features documented in `PHASE_1_COMPLETE.md`, `PHASE_2_COMPLETE.md`, `PHASE_3_COMPLETE.md`, `STONER_VIBE_ENHANCEMENTS.md`
+- Phase 1-4 enhancements documented in `PHASE_1_COMPLETE.md`, `PHASE_2_COMPLETE.md`, `PHASE_3_COMPLETE.md`, `STONER_VIBE_ENHANCEMENTS.md`
 - All new features follow the pattern: component → localStorage → API points → achievement unlock
+- Deploy Worker: `wrangler deploy`
+- Deploy PWA: Build with `cd app && npm run build`, then `npx wrangler pages deploy app/dist --project-name=weed365-pwa --commit-dirty=true`
