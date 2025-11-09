@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-const PWA_URL = 'https://4debcbc8.weed365-pwa.pages.dev';
-const API_URL = 'https://weed365.bill-burkey.workers.dev';
+const PWA_URL = process.env.PWA_URL || 'https://4debcbc8.weed365-pwa.pages.dev';
+const API_URL = process.env.BASE_URL || 'https://weed365.bill-burkey.workers.dev';
 
 test.describe('PWA Browser Tests', () => {
   test('PWA loads and displays today content', async ({ page }) => {
