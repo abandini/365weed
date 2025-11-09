@@ -20,11 +20,24 @@ import listsRouter from './routes/lists';
 // Create Hono app
 const app = new Hono<{ Bindings: Env }>();
 
-// CORS middleware
+// CORS middleware - Security: Only allow specific domains
 app.use('*', cors({
-  origin: '*',
+  origin: (origin) => {
+    const allowedOrigins = [
+      'https://365daysofweed.com',
+      'https://weed365-pwa.pages.dev',
+      'http://localhost:5173', // Vite dev server
+      'http://127.0.0.1:5173',
+    ];
+
+    // Allow requests with no origin (same-origin, mobile apps, Postman)
+    if (!origin) return allowedOrigins[0];
+
+    return allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  },
+  credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-User-Id'],
 }));
 
 // Pro subscription check middleware

@@ -70,17 +70,30 @@ router.post('/portal', async (c) => {
 /**
  * POST /api/stripe/webhook
  * Handle Stripe webhooks
+ *
+ * SECURITY: Verifies webhook signature before processing
  */
 router.post('/webhook', async (c) => {
   try {
     const signature = c.req.header('stripe-signature');
     const body = await c.req.text();
 
-    // In production, verify webhook signature
-    // const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    if (!signature) {
+      console.error('Missing stripe-signature header');
+      return c.json({ error: 'Missing signature' }, 400);
+    }
 
-    // For now, parse the body directly
-    const event = JSON.parse(body);
+    // Verify webhook signature
+    const event = await verifyStripeWebhook(
+      body,
+      signature,
+      c.env.STRIPE_WEBHOOK_SECRET
+    );
+
+    if (!event) {
+      console.error('Invalid webhook signature');
+      return c.json({ error: 'Invalid signature' }, 401);
+    }
 
     switch (event.type) {
       case 'checkout.session.completed':
@@ -105,6 +118,71 @@ router.post('/webhook', async (c) => {
     return c.json({ error: 'Webhook processing failed' }, 500);
   }
 });
+
+/**
+ * Verify Stripe webhook signature using HMAC SHA256
+ * Implements Stripe's webhook verification without requiring the SDK
+ */
+async function verifyStripeWebhook(
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<any | null> {
+  try {
+    // Parse signature header: t=timestamp,v1=signature
+    const signatureParts = signature.split(',').reduce((acc, part) => {
+      const [key, value] = part.split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+
+    const timestamp = signatureParts.t;
+    const expectedSignature = signatureParts.v1;
+
+    if (!timestamp || !expectedSignature) {
+      return null;
+    }
+
+    // Check timestamp tolerance (5 minutes)
+    const tolerance = 300; // seconds
+    const timestampAge = Math.floor(Date.now() / 1000) - parseInt(timestamp, 10);
+
+    if (timestampAge > tolerance) {
+      console.error('Webhook timestamp too old');
+      return null;
+    }
+
+    // Compute expected signature
+    const encoder = new TextEncoder();
+    const data = encoder.encode(`${timestamp}.${payload}`);
+    const keyData = encoder.encode(secret);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, data);
+    const computedSignature = Array.from(new Uint8Array(signatureBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    // Compare signatures (constant-time comparison would be ideal)
+    if (computedSignature !== expectedSignature) {
+      console.error('Signature mismatch');
+      return null;
+    }
+
+    // Signature valid, parse and return event
+    return JSON.parse(payload);
+  } catch (error) {
+    console.error('Webhook verification error:', error);
+    return null;
+  }
+}
 
 /**
  * Handle checkout.session.completed event

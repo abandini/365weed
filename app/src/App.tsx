@@ -19,10 +19,17 @@ import TripleTapModal from './components/TripleTapModal';
 import { useKonamiCode } from './hooks/useKonamiCode';
 import { useShakeGesture } from './hooks/useShakeGesture';
 import { useTripleTap } from './hooks/useTripleTap';
+import { AuthProvider, useAuth, useAuthHeaders } from './contexts/AuthContext';
+import { API_BASE, STORAGE_KEYS } from './lib/config';
+import * as storage from './lib/storage';
+import ErrorBoundary from './components/ErrorBoundary';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://weed365.bill-burkey.workers.dev';
-
-function App() {
+/**
+ * Inner app component that has access to auth context
+ */
+function AppContent() {
+  const { user } = useAuth();
+  const headers = useAuthHeaders();
   const [showKonamiModal, setShowKonamiModal] = useState(false);
   const [showShakeModal, setShowShakeModal] = useState(false);
   const [showTripleTapModal, setShowTripleTapModal] = useState(false);
@@ -31,48 +38,48 @@ function App() {
   // Konami Code Easter Egg
   useKonamiCode(() => {
     // Only show once per day
-    const lastShown = localStorage.getItem('last_konami_shown');
+    const lastShown = storage.getItem(STORAGE_KEYS.LAST_KONAMI_SHOWN);
     const today = new Date().toDateString();
 
     if (lastShown !== today) {
       setShowKonamiModal(true);
-      localStorage.setItem('last_konami_shown', today);
+      storage.setItem(STORAGE_KEYS.LAST_KONAMI_SHOWN, today);
     }
   });
 
   // Shake Gesture Easter Egg
   useShakeGesture(() => {
     // Only show once per day
-    const lastShown = localStorage.getItem('last_shake_shown');
+    const lastShown = storage.getItem(STORAGE_KEYS.LAST_SHAKE_SHOWN);
     const today = new Date().toDateString();
 
     if (lastShown !== today) {
       setShowShakeModal(true);
-      localStorage.setItem('last_shake_shown', today);
+      storage.setItem(STORAGE_KEYS.LAST_SHAKE_SHOWN, today);
     }
   });
 
   // Triple-Tap Easter Egg
   useTripleTap(() => {
     // Only show once per day
-    const lastShown = localStorage.getItem('last_tripletap_shown');
+    const lastShown = storage.getItem(STORAGE_KEYS.LAST_TRIPLETAP_SHOWN);
     const today = new Date().toDateString();
 
     if (lastShown !== today) {
       setShowTripleTapModal(true);
-      localStorage.setItem('last_tripletap_shown', today);
+      storage.setItem(STORAGE_KEYS.LAST_TRIPLETAP_SHOWN, today);
     }
   }, logoRef);
 
   async function awardKonamiPoints() {
-    const userId = 1; // TODO: Get from auth context
+    if (!user) return; // Guest users can't earn points
 
     try {
       await fetch(`${API_BASE}/api/points/award`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          user_id: userId,
+          user_id: user.id,
           points: 100,
           reason: 'Konami Code Activated! 🎮',
           category: 'easter_egg'
@@ -80,10 +87,10 @@ function App() {
       });
 
       // Try to unlock the achievement
-      await fetch(`${API_BASE}/api/achievements/1/unlock`, {
+      await fetch(`${API_BASE}/api/achievements/${user.id}/unlock`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId })
+        headers,
+        body: JSON.stringify({ achievement_code: 'konami_master' })
       });
     } catch (error) {
       console.error('Failed to award Konami points:', error);
@@ -91,14 +98,14 @@ function App() {
   }
 
   async function awardShakePoints() {
-    const userId = 1; // TODO: Get from auth context
+    if (!user) return; // Guest users can't earn points
 
     try {
       await fetch(`${API_BASE}/api/points/award`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          user_id: userId,
+          user_id: user.id,
           points: 25,
           reason: 'Shake Gesture Activated! 📱',
           category: 'easter_egg'
@@ -110,14 +117,14 @@ function App() {
   }
 
   async function awardTripleTapPoints() {
-    const userId = 1; // TODO: Get from auth context
+    if (!user) return; // Guest users can't earn points
 
     try {
       await fetch(`${API_BASE}/api/points/award`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
-          user_id: userId,
+          user_id: user.id,
           points: 50,
           reason: 'Triple-Tap Secret Discovered! 👆',
           category: 'easter_egg'
@@ -185,7 +192,7 @@ function App() {
                   <span>Lists</span>
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-pink group-hover:w-full transition-all duration-300"></span>
                 </Link>
-                <StreakBadge userId={1} />
+                {user && <StreakBadge userId={user.id} />}
                 <ThemeToggle />
                 <Link
                   to="/settings"
@@ -248,6 +255,19 @@ function App() {
         )}
       </div>
     </BrowserRouter>
+  );
+}
+
+/**
+ * Main App component with auth provider and error boundary
+ */
+function App() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

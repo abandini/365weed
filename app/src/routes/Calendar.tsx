@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCalendar, DayCard } from '../lib/api';
+import { sanitizeMarkdown } from '../lib/sanitize';
 
 interface CalendarDay {
   date: string;
@@ -361,7 +362,7 @@ export default function Calendar() {
             )}
 
             <div className="prose prose-invert max-w-none mb-6">
-              <div dangerouslySetInnerHTML={{ __html: selectedCard.body_md.replace(/\n/g, '<br/>') }} />
+              <div dangerouslySetInnerHTML={{ __html: sanitizeMarkdown(selectedCard.body_md) }} />
             </div>
 
             <div className="flex gap-3">

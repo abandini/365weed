@@ -8,6 +8,7 @@ import FourTwentyModal from '../components/FourTwentyModal';
 import DailyChallenge from '../components/DailyChallenge';
 import StrainNameGenerator from '../components/StrainNameGenerator';
 import MunchiesTracker from '../components/MunchiesTracker';
+import { sanitizeMarkdown } from '../lib/sanitize';
 
 export default function Today() {
   const [searchParams] = useSearchParams();
@@ -273,7 +274,7 @@ export default function Today() {
           <article className="prose prose-invert max-w-none">
             <div
               dangerouslySetInnerHTML={{
-                __html: card.body_md.replace(/\n/g, '<br/>'),
+                __html: sanitizeMarkdown(card.body_md),
               }}
             />
           </article>
@@ -444,7 +445,7 @@ export default function Today() {
                   </h3>
                   <div
                     className="text-sm text-gray-400 mt-2 line-clamp-2"
-                    dangerouslySetInnerHTML={{ __html: ad.body_md }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeMarkdown(ad.body_md) }}
                   />
                   <div className="flex items-center gap-2 mt-3">
                     <span className="text-xs text-gray-500 bg-gray-800/50 px-2 py-1 rounded">

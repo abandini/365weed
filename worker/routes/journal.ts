@@ -2,12 +2,12 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import type { Env } from '../types';
 import * as db from '../lib/db';
+import { requireAuth } from '../lib/auth';
 
 const router = new Hono<{ Bindings: Env }>();
 
-// Journal entry schema
+// Journal entry schema - user_id removed (comes from auth context)
 const journalEntrySchema = z.object({
-  user_id: z.number().optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   method: z.string().optional(),
   amount: z.number().optional(),
@@ -21,9 +21,11 @@ const journalEntrySchema = z.object({
 /**
  * POST /api/journal
  * Create a journal entry
+ * PROTECTED: Requires authentication
  */
-router.post('/', async (c) => {
+router.post('/', requireAuth, async (c) => {
   try {
+    const userId = c.get('userId'); // From auth middleware
     const body = await c.req.json();
     console.log('Journal POST body:', body);
 
@@ -35,7 +37,7 @@ router.post('/', async (c) => {
       `INSERT INTO journal (user_id, date, method, amount, units, mood_before, mood_after, sleep_hours, notes)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        entry.user_id ?? null,
+        userId,
         date,
         entry.method ?? null,
         entry.amount ?? null,
@@ -49,11 +51,9 @@ router.post('/', async (c) => {
 
     // Trigger automatic check-in for journal entry
     let streakUpdate = null;
-    if (entry.user_id) {
-      try {
-        // Simple inline check-in logic (lightweight version)
-        const userId = entry.user_id;
-        const currentDate = date;
+    try {
+      // Simple inline check-in logic (lightweight version)
+      const currentDate = date;
 
         let streak = await db.first(
           c.env.DB,
@@ -78,47 +78,46 @@ router.post('/', async (c) => {
             [userId, currentDate, pointsEarned, streak.current_streak]
           );
           streakUpdate = { streak: streak.current_streak, points_earned: pointsEarned };
-        }
+      }
 
-        // Check for journal achievement
-        const journalCount = await db.first(
+      // Check for journal achievement
+      const journalCount = await db.first(
+        c.env.DB,
+        'SELECT COUNT(*) as count FROM journal WHERE user_id = ?',
+        [userId]
+      );
+
+      if (journalCount?.count === 1) {
+        // First journal entry achievement
+        const achievement = await db.first(
           c.env.DB,
-          'SELECT COUNT(*) as count FROM journal WHERE user_id = ?',
-          [userId]
+          `SELECT * FROM achievements WHERE code = 'journal_first'`
         );
 
-        if (journalCount?.count === 1) {
-          // First journal entry achievement
-          const achievement = await db.first(
+        if (achievement) {
+          const existing = await db.first(
             c.env.DB,
-            `SELECT * FROM achievements WHERE code = 'journal_first'`
+            'SELECT * FROM user_achievements WHERE user_id = ? AND achievement_id = ?',
+            [userId, achievement.id]
           );
 
-          if (achievement) {
-            const existing = await db.first(
+          if (!existing) {
+            await db.insert(
               c.env.DB,
-              'SELECT * FROM user_achievements WHERE user_id = ? AND achievement_id = ?',
+              'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)',
               [userId, achievement.id]
             );
 
-            if (!existing) {
-              await db.insert(
-                c.env.DB,
-                'INSERT INTO user_achievements (user_id, achievement_id) VALUES (?, ?)',
-                [userId, achievement.id]
-              );
-
-              await db.execute(
-                c.env.DB,
-                'UPDATE streaks SET total_points = total_points + ? WHERE user_id = ?',
-                [achievement.points, userId]
-              );
-            }
+            await db.execute(
+              c.env.DB,
+              'UPDATE streaks SET total_points = total_points + ? WHERE user_id = ?',
+              [achievement.points, userId]
+            );
           }
         }
-      } catch (error) {
-        console.error('Streak update error (non-fatal):', error);
       }
+    } catch (error) {
+      console.error('Streak update error (non-fatal):', error);
     }
 
     return c.json({ ok: true, id, streak_update: streakUpdate });
@@ -136,19 +135,16 @@ router.post('/', async (c) => {
 
 /**
  * GET /api/journal
- * Get journal entries for a user
+ * Get journal entries for authenticated user
+ * PROTECTED: Requires authentication
  */
-router.get('/', async (c) => {
-  const userId = c.req.query('user_id');
-
-  if (!userId) {
-    return c.json({ error: 'user_id required' }, 400);
-  }
+router.get('/', requireAuth, async (c) => {
+  const userId = c.get('userId'); // From auth middleware
 
   const entries = await db.all(
     c.env.DB,
     'SELECT * FROM journal WHERE user_id = ? ORDER BY date DESC LIMIT 90',
-    [parseInt(userId, 10)]
+    [userId]
   );
 
   return c.json({ entries });
@@ -156,15 +152,12 @@ router.get('/', async (c) => {
 
 /**
  * GET /api/journal/stats
- * Get aggregated statistics
+ * Get aggregated statistics for authenticated user
+ * PROTECTED: Requires authentication
  */
-router.get('/stats', async (c) => {
-  const userId = c.req.query('user_id');
+router.get('/stats', requireAuth, async (c) => {
+  const userId = c.get('userId'); // From auth middleware
   const daysParam = c.req.query('days');
-
-  if (!userId) {
-    return c.json({ error: 'user_id required' }, 400);
-  }
 
   let days = 30;
   if (daysParam !== null && daysParam !== undefined) {
@@ -186,7 +179,7 @@ router.get('/stats', async (c) => {
      FROM journal
      WHERE user_id = ?
        AND date >= date('now', '-' || ? || ' days')`,
-    [parseInt(userId, 10), days]
+    [userId, days]
   );
 
   return c.json({ stats });
