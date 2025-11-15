@@ -53,6 +53,8 @@ export class PerplexityNewsService {
    * Fetch today's cannabis news from Perplexity
    */
   async fetchDailyNews(): Promise<NewsArticle[]> {
+    console.log(`[Perplexity] Starting fetchDailyNews with API key: ${this.apiKey ? 'present' : 'MISSING'}`);
+
     const categories = [
       {
         slug: 'legal',
@@ -122,7 +124,7 @@ Guidelines:
 - Include 3-5 relevant tags`;
 
     const request: PerplexityRequest = {
-      model: 'llama-3.1-sonar-large-128k-online',
+      model: 'sonar-pro',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: query },
@@ -144,7 +146,9 @@ Guidelines:
       });
 
       if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Perplexity API error ${response.status}:`, errorText);
+        throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
       }
 
       const data: PerplexityResponse = await response.json();
@@ -163,15 +167,28 @@ Guidelines:
 
       const parsed = JSON.parse(jsonContent);
 
+      // Ensure all fields are proper types
+      const ensureString = (val: any): string => {
+        if (typeof val === 'string') return val;
+        if (val === null || val === undefined) return '';
+        return String(val);
+      };
+
+      const ensureArray = (val: any): string[] => {
+        if (Array.isArray(val)) return val.map(String);
+        if (typeof val === 'string') return [val];
+        return [];
+      };
+
       return {
-        title: parsed.title,
-        summary: parsed.summary,
-        content: parsed.content,
+        title: ensureString(parsed.title),
+        summary: ensureString(parsed.summary),
+        content: ensureString(parsed.content),
         category,
         sourceUrls: data.citations || [],
         imageUrl: data.images?.[0],
-        tags: parsed.tags || [],
-        publishedAt: parsed.publishedAt || new Date().toISOString(),
+        tags: ensureArray(parsed.tags),
+        publishedAt: ensureString(parsed.publishedAt) || new Date().toISOString(),
       };
     } catch (error) {
       console.error('Perplexity API error:', error);

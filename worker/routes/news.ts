@@ -186,6 +186,7 @@ news.post('/fetch', async (c) => {
   try {
     console.log('Fetching daily cannabis news...');
     const articles = await service.fetchDailyNews();
+    console.log(`Perplexity returned ${articles.length} articles`);
 
     const inserted = [];
     const errors = [];
@@ -205,6 +206,33 @@ news.post('/fetch', async (c) => {
           continue;
         }
 
+        // Ensure ALL values are proper primitives
+        const sanitize = (val: any): string => {
+          if (val === null || val === undefined) return '';
+          if (typeof val === 'string') return val;
+          if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+          return JSON.stringify(val);
+        };
+
+        const params = {
+          slug: sanitize(slug),
+          title: sanitize(article.title),
+          summary: sanitize(article.summary),
+          content: sanitize(article.content),
+          category: sanitize(article.category),
+          sourceUrls: Array.isArray(article.sourceUrls)
+            ? JSON.stringify(article.sourceUrls)
+            : sanitize(article.sourceUrls),
+          imageUrl: article.imageUrl ? sanitize(article.imageUrl) : null,
+          publishedAt: sanitize(article.publishedAt),
+          fetchDate: sanitize(fetchDate),
+          tags: Array.isArray(article.tags)
+            ? article.tags.join(',')
+            : sanitize(article.tags),
+        };
+
+        console.log(`Inserting: ${params.title.substring(0, 50)}...`);
+
         await c.env.DB.prepare(`
           INSERT INTO news_articles (
             slug, title, summary, content, category,
@@ -212,16 +240,16 @@ news.post('/fetch', async (c) => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `)
           .bind(
-            slug,
-            article.title,
-            article.summary,
-            article.content,
-            article.category,
-            JSON.stringify(article.sourceUrls),
-            article.imageUrl || null,
-            article.publishedAt,
-            fetchDate,
-            article.tags.join(',')
+            params.slug,
+            params.title,
+            params.summary,
+            params.content,
+            params.category,
+            params.sourceUrls,
+            params.imageUrl,
+            params.publishedAt,
+            params.fetchDate,
+            params.tags
           )
           .run();
 
