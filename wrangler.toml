@@ -42,6 +42,10 @@ dead_letter_queue = "daily-broadcast-dlq"
 [ai]
 binding = "AI"
 
+# Cron Triggers
+[triggers]
+crons = ["0 6 * * *"]  # Daily at 6 AM UTC for news fetching
+
 # Environment Variables
 [vars]
 APP_BASE_URL = "https://365daysofweed.com"

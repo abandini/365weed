@@ -16,6 +16,8 @@ import referralsRouter from './routes/referrals';
 import recommendationsRouter from './routes/recommendations';
 import communityRouter from './routes/community';
 import listsRouter from './routes/lists';
+import newsRouter from './routes/news';
+import { handleDailyNewsFetch } from './cron/daily-news';
 
 // Create Hono app
 const app = new Hono<{ Bindings: Env }>();
@@ -78,6 +80,7 @@ app.route('/api/referrals', referralsRouter);
 app.route('/api/recommendations', recommendationsRouter);
 app.route('/api/community', communityRouter);
 app.route('/api/lists', listsRouter);
+app.route('/api/news', newsRouter);
 
 // Coupon redirect
 app.get('/c/:code', async (c) => {
@@ -273,10 +276,25 @@ async function queueHandler(batch: any, env: Env): Promise<void> {
   }
 }
 
-// Export Worker with queue handler
+// Cron handler for scheduled tasks
+async function scheduledHandler(
+  event: ScheduledEvent,
+  env: Env,
+  ctx: ExecutionContext
+): Promise<void> {
+  console.log('[CRON] Scheduled event triggered:', event.cron);
+
+  // Daily news fetch (runs at 6 AM UTC daily)
+  if (event.cron === '0 6 * * *') {
+    await handleDailyNewsFetch(env);
+  }
+}
+
+// Export Worker with queue and scheduled handlers
 export default {
   fetch: app.fetch,
   queue: queueHandler,
+  scheduled: scheduledHandler,
 };
 
 // Durable Object export

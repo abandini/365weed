@@ -6,6 +6,7 @@ import Journal from './routes/Journal';
 import Achievements from './routes/Achievements';
 import Settings from './routes/Settings';
 import Lists from './routes/Lists';
+import News from './routes/News';
 import InstallPrompt from './components/InstallPrompt';
 
 function AppContent() {
@@ -14,6 +15,7 @@ function AppContent() {
   const navLinks = [
     { path: '/', label: 'Today', icon: '🏠' },
     { path: '/calendar', label: 'Calendar', icon: '📅' },
+    { path: '/news', label: 'News', icon: '📰' },
     { path: '/favorites', label: 'Favorites', icon: '⭐' },
     { path: '/journal', label: 'Journal', icon: '📝' },
     { path: '/achievements', label: 'Achievements', icon: '🏆' },
@@ -136,6 +138,8 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<TodayEnhanced />} />
           <Route path="/calendar" element={<CalendarEnhanced />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:slug" element={<News />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/achievements" element={<Achievements />} />
