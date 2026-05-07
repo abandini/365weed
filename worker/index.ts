@@ -17,6 +17,7 @@ import recommendationsRouter from './routes/recommendations';
 import communityRouter from './routes/community';
 import listsRouter from './routes/lists';
 import newsRouter from './routes/news';
+import pointsRouter from './routes/points';
 import { handleDailyNewsFetch } from './cron/daily-news';
 
 // Create Hono app
@@ -24,9 +25,15 @@ const app = new Hono<{ Bindings: Env }>();
 
 // CORS middleware
 app.use('*', cors({
-  origin: '*',
+  origin: [
+    'https://365daysofweed.com',
+    'https://www.365daysofweed.com',
+    'http://localhost:5173',
+    'http://localhost:8787',
+  ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 // Pro subscription check middleware
@@ -66,6 +73,115 @@ app.get('/health', (c) => {
   });
 });
 
+// robots.txt — explicitly allow AI crawlers (overrides Cloudflare managed blocking)
+app.get('/robots.txt', (c) => {
+  const robots = `User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Sitemap: https://365daysofweed.com/sitemap.xml
+`;
+  return new Response(robots, {
+    headers: { 'Content-Type': 'text/plain', 'Cache-Control': 'public, max-age=3600' },
+  });
+});
+
+// sitemap.xml — XML sitemap for Google Search Console
+// Without this, the SPA's catch-all served HTML at /sitemap.xml, blocking indexing.
+app.get('/sitemap.xml', (c) => {
+  const today = new Date().toISOString().split('T')[0];
+  const urls = [
+    { loc: 'https://365daysofweed.com/', changefreq: 'daily', priority: '1.0' },
+    { loc: 'https://365daysofweed.com/today', changefreq: 'daily', priority: '0.9' },
+    { loc: 'https://365daysofweed.com/calendar', changefreq: 'daily', priority: '0.8' },
+    { loc: 'https://365daysofweed.com/news', changefreq: 'daily', priority: '0.8' },
+    { loc: 'https://365daysofweed.com/lists', changefreq: 'weekly', priority: '0.6' },
+  ];
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>
+    <loc>${u.loc}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority}</priority>
+  </url>`).join('\n')}
+</urlset>
+`;
+  return new Response(body, {
+    headers: {
+      'Content-Type': 'application/xml; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600',
+    },
+  });
+});
+
+// llms.txt — AI-friendly content map
+app.get('/llms.txt', (c) => {
+  const llms = `# 365 Days of Weed
+
+> Daily cannabis education and wellness tracking. A new article every day of the year covering strains, terpenes, consumption methods, history, and culture. By Bill Burkey, author of *WEED: A Senior's Guide to Cannabis*.
+
+## About this site
+
+365 Days of Weed publishes one piece of cannabis education content per day, year-round. Topics include strain spotlights, terpene science, consumption method guides, historical context, and cultural commentary. Companion to the Cannabis Education Network: 420Blazin.com (events and gear) and WeedASeniorsGuide.com (book companion for adults 50+).
+
+## Author
+
+Bill Burkey ("Blazin Bill") — Author of *WEED: A Senior's Guide to Cannabis* (Amazon ASIN B0GPG71T22). Cleveland-based cannabis writer focused on terpene science and craft cultivation.
+
+## Key resources
+
+- [Today's article](https://365daysofweed.com/today)
+- [Cannabis news](https://365daysofweed.com/news)
+- [Strain library](https://365daysofweed.com)
+- [The book](https://www.amazon.com/dp/B0GPG71T22)
+
+## Sister sites in the Cannabis Education Network
+
+- [420Blazin.com](https://420blazin.com) — Cannabis culture, events, and vaporizer reviews
+- [WeedASeniorsGuide.com](https://weedaseniorsguide.com) — Companion site to the WEED book for adults 50+
+
+## Topics covered
+
+- Cannabis strains (sativa, indica, hybrid)
+- Terpene profiles (myrcene, limonene, linalool, pinene, beta-caryophyllene, etc.)
+- Consumption methods (vaporizers, edibles, tinctures, topicals)
+- Cannabis culture and history
+- Legal landscape by state
+- Wellness applications
+- Daily journal and tracking
+`;
+  return new Response(llms, {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=3600' },
+  });
+});
+
 // Mount API routes
 app.route('/api/today', todayRouter);
 app.route('/api/ads', adsRouter);
@@ -81,6 +197,7 @@ app.route('/api/recommendations', recommendationsRouter);
 app.route('/api/community', communityRouter);
 app.route('/api/lists', listsRouter);
 app.route('/api/news', newsRouter);
+app.route('/api/points', pointsRouter);
 
 // Coupon redirect
 app.get('/c/:code', async (c) => {
@@ -140,29 +257,29 @@ app.get('/c/:code', async (c) => {
   return c.redirect(targetUrl);
 });
 
-// SSR/SEO endpoints
-app.get('/', async (c) => {
-  return c.html(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>365 Days of Weed - Daily Cannabis Education</title>
-  <meta name="description" content="Daily cannabis education, wellness tracking, and community insights">
-</head>
-<body>
-  <h1>365 Days of Weed</h1>
-  <p>Daily cannabis education, wellness tracking, and community insights.</p>
-  <p><a href="/api/today">View Today's Content</a></p>
-</body>
-</html>
-  `);
-});
-
-// 404 handler
-app.notFound((c) => {
-  return c.json({ error: 'Not found' }, 404);
+// Proxy non-API requests to Pages PWA
+app.get('*', async (c) => {
+  const url = new URL(c.req.url);
+  // Proxy to Pages deployment for static assets (PWA)
+  const pagesUrl = `https://weed365-pwa.pages.dev${url.pathname}${url.search}`;
+  try {
+    const response = await fetch(pagesUrl, {
+      headers: {
+        'Accept': c.req.header('Accept') || '*/*',
+        'Accept-Encoding': c.req.header('Accept-Encoding') || '',
+      },
+    });
+    const headers = new Headers(response.headers);
+    // Remove headers that cause issues when proxying
+    headers.delete('cf-cache-status');
+    headers.delete('cf-ray');
+    return new Response(response.body, {
+      status: response.status,
+      headers,
+    });
+  } catch {
+    return c.json({ error: 'Service unavailable' }, 503);
+  }
 });
 
 // Error handler
